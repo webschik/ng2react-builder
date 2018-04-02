@@ -27,6 +27,16 @@ export interface Angular {
     AST: AngularParser;
 }
 
+export interface ComponentMethod {
+    name: string;
+    args: string[];
+}
+
+export interface ComponentInfo {
+    template: string;
+    methods: ComponentMethod[];
+}
+
 function initAngular () {
     const source: string = fs.readFileSync('node_modules/angular/angular.js', 'utf8');
     const externalAPICode: string = 'function publishExternalAPI(angular) {\n  extend(angular, {';
