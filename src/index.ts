@@ -88,6 +88,7 @@ if (require.main === module) {
     const cwd: string = process.cwd();
 
     createReactComponent({
+        name: 'Component1',
         template: fs.readFileSync(path.resolve(cwd, argv.template), 'utf8')
     });
 }

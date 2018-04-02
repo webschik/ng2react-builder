@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "main": "dist/index.js",
   "scripts": {
-    "test": ""
+    "test": "npx jest --no-cache"
   },
   "keywords": [
     "angularjs",
@@ -24,9 +24,18 @@
     "@types/node": "^9.6.1",
     "@types/react": "^16.3.0",
     "@types/yargs": "^11.0.0",
+    "jest": "^22.4.3",
     "ts-node": "^5.0.1",
     "tslint": "^5.9.1",
     "tslint-config-webschik": "^1.0.0",
     "typescript": "^2.8.1"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/webschik/ng2react.git"
+  },
+  "bugs": {
+    "url": "https://github.com/webschik/ng2react/issues"
+  },
+  "homepage": "https://github.com/webschik/ng2react#readme"
 }
