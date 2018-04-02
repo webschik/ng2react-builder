@@ -1,0 +1,32 @@
+{
+  "name": "ng2react",
+  "description": "Angular1 -> React.js transpiler",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": ""
+  },
+  "keywords": [
+    "angularjs",
+    "Angular1",
+    "React.js",
+    "migration"
+  ],
+  "author": "webschik",
+  "license": "MIT",
+  "dependencies": {
+    "angular": "^1.6.9",
+    "parse5": "^4.0.0",
+    "yargs": "^11.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^22.2.2",
+    "@types/node": "^9.6.1",
+    "@types/react": "^16.3.0",
+    "@types/yargs": "^11.0.0",
+    "ts-node": "^5.0.1",
+    "tslint": "^5.9.1",
+    "tslint-config-webschik": "^1.0.0",
+    "typescript": "^2.8.1"
+  }
+}

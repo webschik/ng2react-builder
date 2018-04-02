@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "jsx": "react",
+    "sourceMap": true,
+    "noImplicitAny": true,
+    "noUnusedParameters": true,
+    "noEmitHelpers": true,
+    "importHelpers": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "lib": [
+      "dom",
+      "es2017"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "parse5": ["./node_modules/parse5/lib/index.d.ts"]
+    }
+  },
+  "exclude": [
+    "node_modules",
+    "__tests__"
+  ]
+}

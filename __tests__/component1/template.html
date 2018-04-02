@@ -1,0 +1,7 @@
+<button class="product-info-icon_star"
+        title="{{::'translation.label.504' | localize}}"
+        data-ng-if="formData.showStar"
+        data-ng-click="::actions.toggleStatus();">
+    <span data-dg-icon="star" data-ng-if="formData.isFavourite"></span>
+    <span data-dg-icon="star-o" data-ng-if="!formData.isFavourite"></span>
+</button>
