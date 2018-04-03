@@ -23,20 +23,4 @@ describe('createReactComponent()', () => {
             expect(generatedCode).toBe(expectedCode);
         });
     });
-    it('should generate JSX component', () => {
-        return Promise.all<string>([
-            createReactComponent({
-                templatePath: './__tests__/component/template.html',
-                replaceDirectives: {
-                    'my-icon': 'Icon'
-                },
-                output: {
-                    name: 'TestComponent'
-                }
-            }),
-            readFile(path.resolve(__dirname, './component/index.jsx'), 'utf8')
-        ]).then(([generatedCode, expectedCode]: string[]) => {
-            expect(generatedCode).toBe(expectedCode);
-        });
-    });
 });

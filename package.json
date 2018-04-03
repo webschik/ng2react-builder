@@ -3,8 +3,13 @@
   "description": "Angular1 -> React.js transpiler",
   "version": "0.1.0",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "test": "npx jest --no-cache"
+    "pretest": "npm run lint",
+    "test": "npx jest --no-cache",
+    "lint": "npx tslint \"src/**/*.ts\" && npx tslint \"src/*.ts\"",
+    "prebuild": "npm run lint",
+    "build": "rm -rf dist && npx tsc"
   },
   "keywords": [
     "angularjs",

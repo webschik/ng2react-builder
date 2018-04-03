@@ -6,7 +6,7 @@ import parseNgExpression from './parse-ng-expression';
 import searchNgAttr from './search-ng-attr';
 
 const Serializer = require('parse5/lib/serializer/index');
-const {NAMESPACES: NS} = require('parse5/lib/common/html');
+const {NAMESPACES: NS, TAG_NAMES: $} = require('parse5/lib/common/html');
 const defaultTreeAdapter: AST.TreeAdapter = treeAdapters.htmlparser2;
 const {createElement, adoptAttributes, getTagName} = defaultTreeAdapter;
 const ngAttrsOutputBlackList: string[] = [
@@ -72,7 +72,6 @@ export default function parseTemplate (
             }
         })
     });
-    const {_serializeElement} = serializer;
 
     serializer._serializeElement = function (node: AST.HtmlParser2.Element) {
         let condition: string = '';
@@ -106,7 +105,24 @@ export default function parseTemplate (
             this.html += `${ condition } ? (`;
         }
 
-        _serializeElement.apply(this, arguments);
+        const tn: string = this.treeAdapter.getTagName(node);
+        const ns: string = this.treeAdapter.getNamespaceURI(node);
+
+        this.html += '<' + tn;
+        this._serializeAttributes(node);
+        const childNodesHolder = tn === $.TEMPLATE && ns === NS.HTML ?
+            this.treeAdapter.getTemplateContent(node) :
+            node;
+        const childNodes: AST.Node[] = this.treeAdapter.getChildNodes(childNodesHolder);
+
+        // make all empty tags self-closed in JSX
+        if (childNodes[0]) {
+            this.html += '>';
+            this._serializeChildNodes(childNodesHolder);
+            this.html += '</' + tn + '>';
+        } else {
+            this.html += '/>';
+        }
 
         if (condition) {
             this.html += `) : null${ isConditionWrapped ? '}' : ''}`;
