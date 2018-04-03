@@ -1,8 +1,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vm from 'vm';
-import {argv} from 'yargs';
+import * as prettier from 'prettier';
+import {promisify} from 'util';
 import parseTemplate from './parser/parse-template';
+
+const readFile = promisify(fs.readFile);
 
 export interface AngularParseOptions {
     csp?: boolean;
@@ -14,7 +17,27 @@ export interface AngularLexer {
 }
 
 export interface AngularAST {
+    body: Array<{
+        expression: AngularASTExpression;
+    }>;
     [key: string]: any;
+}
+
+export interface AngularASTNode {
+    name: string;
+    type: string;
+    value?: string;
+}
+
+export interface AngularASTExpressionCallee extends AngularASTNode {
+    property: AngularASTNode;
+    object: AngularASTNode;
+}
+
+export interface AngularASTExpression {
+    type: string;
+    callee: AngularASTExpressionCallee;
+    arguments: AngularASTNode[];
 }
 
 export interface AngularParser {
@@ -82,23 +105,56 @@ function initAngular () {
 }
 
 export interface ReactComponentOptions {
-    name: string;
-    template: string;
+    templatePath?: string;
+    replaceDirectives?: {
+        [key: string]: string;
+    };
+    output: {
+        name: string;
+        typescript?: boolean;
+        prettier?: prettier.Options;
+    };
 }
 
-export function createReactComponent ({template}: ReactComponentOptions): string {
-    const angular: Angular = initAngular();
+export function createReactComponent (options: ReactComponentOptions): Promise<string> {
+    const {templatePath, output} = options;
+    const {typescript} = output;
+    const queue: Array<Promise<ComponentInfo>> = [];
 
-    parseTemplate(angular, template);
+    if (templatePath) {
+        const angular: Angular = initAngular();
 
-    return '';
-}
+        queue.push(readFile(path.resolve(process.cwd(), templatePath), 'utf8').then((template: string) => {
+            return parseTemplate(angular, template, options);
+        }));
+    }
 
-if (require.main === module) {
-    const cwd: string = process.cwd();
+    return Promise.all(queue).then((componentInfoParts: ComponentInfo[]) => {
+        const componentInfo: ComponentInfo = componentInfoParts.reduce((componentInfo: ComponentInfo, part) => {
+            return Object.assign(componentInfo, part);
+        }, {} as ComponentInfo);
 
-    createReactComponent({
-        name: 'Component1',
-        template: fs.readFileSync(path.resolve(cwd, argv.template), 'utf8')
+        return prettier.format(`
+            ${ typescript ? 'import * as React from \'react\';' : 'import React from \'react\';'}
+
+            export default class ${ output.name } extends React.PureComponent${ typescript ? '<{}>' : ''} {
+                render () {
+                    return (
+                        ${ componentInfo && componentInfo.template || ''}
+                    );
+                }
+            }
+        `, Object.assign({
+            printWidth: 120,
+            tabWidth: 4,
+            useTabs: false,
+            semi: true,
+            singleQuote: true,
+            trailingComma: 'none',
+            bracketSpacing: false,
+            jsxBracketSameLine: true,
+            arrowParens: 'always',
+            parser: typescript ? 'typescript' : 'babylon'
+        }, output.prettier));
     });
 }

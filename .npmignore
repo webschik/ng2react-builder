@@ -2,6 +2,6 @@
 .vscode
 .DS_Store
 node_modules
-dist
+src
 coverage
 package-lock.json

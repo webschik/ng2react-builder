@@ -8,11 +8,6 @@ to [React.js](https://reactjs.org/)
 npm i -D ng2react
 ```
 
-### CLI
-```shell
-npx ng2react
-```
-
 ### via API
 ```js
 import {createReactComponent} from 'ng2react';

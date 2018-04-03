@@ -1,17 +1,41 @@
 import * as fs from 'fs';
+import * as path from 'path';
 import {promisify} from 'util';
 import {createReactComponent} from '../src';
 
-const readFile = promisify(fs.readFileSync);
+const readFile = promisify(fs.readFile);
 
 describe('createReactComponent()', () => {
-    it('should generate component1', () => {
-        const generatedCode: string = createReactComponent({
-            name: 'Component1',
-            template: './component1/template.html'
+    it('should generate TSX component', () => {
+        return Promise.all<string>([
+            createReactComponent({
+                templatePath: './__tests__/component/template.html',
+                replaceDirectives: {
+                    'my-icon': 'Icon'
+                },
+                output: {
+                    typescript: true,
+                    name: 'TestComponent'
+                }
+            }),
+            readFile(path.resolve(__dirname, './component/index.tsx'), 'utf8')
+        ]).then(([generatedCode, expectedCode]: string[]) => {
+            expect(generatedCode).toBe(expectedCode);
         });
-
-        return readFile('./component1/index.tsx', 'utf8').then((expectedCode: string) => {
+    });
+    it('should generate JSX component', () => {
+        return Promise.all<string>([
+            createReactComponent({
+                templatePath: './__tests__/component/template.html',
+                replaceDirectives: {
+                    'my-icon': 'Icon'
+                },
+                output: {
+                    name: 'TestComponent'
+                }
+            }),
+            readFile(path.resolve(__dirname, './component/index.jsx'), 'utf8')
+        ]).then(([generatedCode, expectedCode]: string[]) => {
             expect(generatedCode).toBe(expectedCode);
         });
     });

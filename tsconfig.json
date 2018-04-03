@@ -2,6 +2,8 @@
   "compilerOptions": {
     "target": "es5",
     "jsx": "react",
+    "rootDir": "src",
+    "outDir": "src",
     "declaration": true,
     "sourceMap": true,
     "noImplicitAny": true,
