@@ -1,7 +1,9 @@
 <button class="product-info-icon_star"
         title="{{::'translation.label.504' | localize}}"
+        data-tooltip="Product name: {{productInfo.name}}"
         data-ng-if="formData.showStar"
         ng-click="::actions.toggleStatus();">
-    <span data-my-icon type="star" ng-show="formData.isFavourite"></span>
+    <span data-my-icon="star" ng-show="formData.isFavourite"></span>
     <my-icon type="star-o" data-ng-if="!formData.isFavourite"></my-icon>
+    {{code}} | {{productInfo.name}}
 </button>

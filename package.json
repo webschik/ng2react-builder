@@ -8,8 +8,10 @@
     "pretest": "npm run lint",
     "test": "npx jest --no-cache",
     "lint": "npx tslint \"src/**/*.ts\" && npx tslint \"src/*.ts\"",
-    "prebuild": "npm run lint",
-    "build": "rm -rf dist && npx tsc"
+    "prepublish": "npm test && npm run build",
+    "build": "rm -rf dist && npx tsc",
+    "precoverage": "npm test",
+    "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
   },
   "keywords": [
     "angularjs",
@@ -30,6 +32,7 @@
     "@types/prettier": "^1.10.0",
     "@types/react": "^16.3.0",
     "@types/yargs": "^11.0.0",
+    "coveralls": "^3.0.0",
     "jest": "^22.4.3",
     "ts-node": "^5.0.1",
     "tslint": "^5.9.1",

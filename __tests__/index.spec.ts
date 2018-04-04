@@ -11,7 +11,10 @@ describe('createReactComponent()', () => {
             createReactComponent({
                 templatePath: './__tests__/component/template.html',
                 replaceDirectives: {
-                    'my-icon': 'Icon'
+                    'my-icon': {
+                        tagName: 'Icon',
+                        valueProp: 'type'
+                    }
                 },
                 output: {
                     typescript: true,

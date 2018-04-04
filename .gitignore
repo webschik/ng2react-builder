@@ -6,3 +6,4 @@ dist
 coverage
 tmp
 package-lock.json
+.coveralls.yml

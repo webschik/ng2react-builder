@@ -1,7 +1,6 @@
-.idea
-.vscode
-.DS_Store
-node_modules
-src
-coverage
-package-lock.json
+*
+!package.json
+!dist
+!npm-shrinkwrap.json
+!LICENSE
+!README.md
