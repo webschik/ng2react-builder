@@ -6,24 +6,47 @@ import {createReactComponent} from '../src';
 const readFile = promisify(fs.readFile);
 
 describe('createReactComponent()', () => {
-    it('should generate TSX component', () => {
-        return Promise.all<string>([
-            createReactComponent({
-                templatePath: './__tests__/component/template.html',
-                replaceDirectives: {
-                    'my-icon': {
-                        tagName: 'Icon',
-                        valueProp: 'type'
+    describe('component1', () => {
+        it('should generate TSX component', () => {
+            return Promise.all<string>([
+                readFile(path.resolve(__dirname, './component1/template.html'), 'utf8'),
+                readFile(path.resolve(__dirname, './component1/index.tsx'), 'utf8')
+            ]).then(([template, expectedCode]: string[]) => {
+                const generatedCode: string = createReactComponent({
+                    template,
+                    replaceDirectives: {
+                        'my-icon': {
+                            tagName: 'Icon',
+                            valueProp: 'type'
+                        }
+                    },
+                    react: {
+                        typescript: true,
+                        componentName: 'TestComponent'
                     }
-                },
-                output: {
-                    typescript: true,
-                    name: 'TestComponent'
-                }
-            }),
-            readFile(path.resolve(__dirname, './component/index.tsx'), 'utf8')
-        ]).then(([generatedCode, expectedCode]: string[]) => {
-            expect(generatedCode).toBe(expectedCode);
+                });
+
+                expect(generatedCode).toBe(expectedCode);
+            });
+        });
+    });
+    describe('component2', () => {
+        it('should generate TSX component', () => {
+            return Promise.all<string>([
+                readFile(path.resolve(__dirname, './component2/template.html'), 'utf8'),
+                readFile(path.resolve(__dirname, './component2/index.tsx'), 'utf8')
+            ]).then(([template, expectedCode]: string[]) => {
+                const generatedCode: string = createReactComponent({
+                    template,
+                    react: {
+                        typescript: true,
+                        componentName: 'Icon',
+                        componentType: 'stateless'
+                    }
+                });
+
+                expect(generatedCode).toBe(expectedCode);
+            });
         });
     });
 });

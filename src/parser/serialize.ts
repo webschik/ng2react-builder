@@ -57,8 +57,10 @@ export default function serialize (
             }
         }
 
+        const isRootChild: boolean = Boolean(node.parent && node.parent.type === 'root');
+
         if (condition) {
-            if (this.html) {
+            if (this.html && !isRootChild) {
                 isConditionWrapped = true;
                 this.html += '{';
             }
@@ -87,6 +89,10 @@ export default function serialize (
 
         if (condition) {
             this.html += `) : null${ isConditionWrapped ? '}' : ''}`;
+        }
+
+        if (isRootChild && node.next) {
+            this.html += ',';
         }
     };
 
