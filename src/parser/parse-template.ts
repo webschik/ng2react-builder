@@ -30,16 +30,14 @@ export default function parseTemplate (template: string, options: ReactComponent
 
         return true;
     });
+    const rootNodesCount: number = children.length;
 
     fragment.children = children;
     fragment.childNodes = children;
     fragment.firstChild = children[0];
-    fragment.lastChild = children[children.length - 1] || fragment.firstChild;
+    fragment.lastChild = children[rootNodesCount - 1] || fragment.firstChild;
 
-    // tslint:disable-next-line
-    debugger;
-
-    let output: string = serialize(fragment, {
+    const output: string = serialize(fragment, {
         treeAdapter: Object.assign({}, treeAdapter, {
             getTagName (node: AST.HtmlParser2.Element) {
                 const {attribs, name} = node;
@@ -68,7 +66,7 @@ export default function parseTemplate (template: string, options: ReactComponent
     }, options);
 
     return {
-        template,
+        template: output,
         methods
     };
 }
