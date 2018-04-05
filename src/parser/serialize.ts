@@ -188,7 +188,10 @@ export default function serialize (
                         attrValue.includes(reactInterpolation.startSymbol) &&
                         attrValue.includes(reactInterpolation.endSymbol)
                     ) {
-                        this.html += '{`' + attrValue.replace(/\{/, '${') + '`}';
+                        this.html +=
+                            `${ startSymbol }\`` +
+                            attrValue.replace(new RegExp(`\\${ startSymbol }`, 'g'), '${') +
+                            `\`${ endSymbol }`;
                     } else if (isEventHandlerAttr) {
                         this.html += reactInterpolation.startSymbol  + attrValue + reactInterpolation.endSymbol;
                     } else {
