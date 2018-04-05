@@ -5,7 +5,7 @@ export default class TestComponent extends React.PureComponent<{}> {
         return [
             formData.showStar ? (
                 <button
-                    key="0"
+                    key="item-0"
                     className="product-info-icon_star"
                     title={localize('translation.label.504')}
                     data-tooltip={`Product name: ${productInfo.name}`}
@@ -15,7 +15,7 @@ export default class TestComponent extends React.PureComponent<{}> {
                     {code} | {productInfo.name}
                 </button>
             ) : null,
-            !formData.showStar ? <div key="1" /> : null
+            !formData.showStar ? <div key="item-1" /> : null
         ];
     }
 }

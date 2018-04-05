@@ -4,6 +4,7 @@ import {AngularInterpolateOptions, DirectiveReplaceInfo, ReactComponentOptions} 
 import {angularAttr2React, htmlAttr2React, reactInterpolation} from '../react';
 import cleanNgAttrExpression from './clean-ng-attr-expression';
 import interpolate from './interpolate';
+import parseNgIterator from './parse-ng-iterator';
 import searchNgAttr from './search-ng-attr';
 import stringifyNgExpression from './stringify-ng-expression';
 
@@ -13,7 +14,10 @@ const {NAMESPACES: NS, TAG_NAMES: $} = require('parse5/lib/common/html');
 const ngAttrsOutputBlackList: string[] = [
     'ng-if',
     'ng-show',
-    'ng-hide'
+    'ng-hide',
+    'ng-repeat',
+    'ng-repeat-start',
+    'ng-repeat-end'
 ];
 
 export default function serialize (
@@ -40,7 +44,6 @@ export default function serialize (
 
     serializer._serializeElement = function (node: AST.HtmlParser2.Element) {
         let condition: string = '';
-        let isConditionWrapped: boolean = false;
         const {attribs} = node;
 
         for (const name in attribs) {
@@ -65,21 +68,67 @@ export default function serialize (
             }
         }
 
-        const isRootChild: boolean = Boolean(node.parent && node.parent.type === 'root');
+        const parent: AST.HtmlParser2.Element = node.parent as AST.HtmlParser2.Element;
+        const isRootChild: boolean = Boolean(parent && parent.type === 'root');
+        const isChildOfIterator: boolean = Boolean(parent && parent.attribs && parent.attribs['ng-repeat-start']);
+        const iteratorStartAttr: string = attribs['ng-repeat'] || attribs['ng-repeat-start'];
+        const hasIteratorEnd: boolean = Boolean(attribs['ng-repeat'] || ('ng-repeat-end' in attribs));
+        const hasIteratorWrapper: boolean = !isRootChild;
+        let hasConditionWrapper: boolean = false;
 
         if (condition) {
             if (!isRootChild) {
-                isConditionWrapped = true;
-                this.html += '{';
+                hasConditionWrapper = true;
+                this.html += reactInterpolation.startSymbol;
             }
 
             this.html += `${ condition } ? (`;
+        }
+
+        if (iteratorStartAttr) {
+            const {aliasAs, collectionIdentifier, valueIdentifier} = parseNgIterator(iteratorStartAttr);
+
+            if (hasIteratorWrapper) {
+                this.html += reactInterpolation.startSymbol;
+            }
+
+            this.html += `
+                ${ collectionIdentifier }.map((${ valueIdentifier }, index${ aliasAs ? `, ${ aliasAs }` : '' }) =>
+                ${ reactInterpolation.startSymbol }return ${ hasIteratorEnd ? '(' : '[' }
+            `;
         }
 
         const tn: string = this.treeAdapter.getTagName(node);
         const ns: string = this.treeAdapter.getNamespaceURI(node);
 
         this.html += '<' + tn;
+        const keyPrefix: string = 'item';
+        let key: string = '';
+
+        if (iteratorStartAttr || hasIteratorEnd || isChildOfIterator) {
+            if (!key) {
+                key = keyPrefix;
+            }
+
+            key += '-${ index }';
+        }
+
+        if (
+            isRootChild &&
+            parent.children[1] &&
+            (iteratorStartAttr && !hasIteratorEnd || hasIteratorEnd && !iteratorStartAttr)
+        ) {
+            if (!key) {
+                key = keyPrefix;
+            }
+
+            key += `-${ parent.children.indexOf(node) }`;
+        }
+
+        if (key) {
+            this.html += ` key={\`${ key }\`}`;
+        }
+
         this._serializeAttributes(node);
         const childNodesHolder = tn === $.TEMPLATE && ns === NS.HTML ?
             this.treeAdapter.getTemplateContent(node) :
@@ -95,8 +144,16 @@ export default function serialize (
             this.html += '/>';
         }
 
+        if (hasIteratorEnd) {
+            this.html += `
+                ${ iteratorStartAttr ? ')' : ']' }
+                ${ reactInterpolation.endSymbol })
+                ${ hasIteratorWrapper ? reactInterpolation.endSymbol : '' }
+            `;
+        }
+
         if (condition) {
-            this.html += `) : null${ isConditionWrapped ? '}' : ''}`;
+            this.html += `) : null${ hasConditionWrapper ? reactInterpolation.endSymbol : '' }`;
         }
 
         if (isRootChild && node.next) {
@@ -107,11 +164,6 @@ export default function serialize (
     serializer._serializeAttributes = function (node: AST.HtmlParser2.Element) {
         const {attribs} = node;
         const filteredAttibs: {[key: string]: string} = {};
-        const isRootChild: boolean = Boolean(node.parent && node.parent.type === 'root');
-
-        if (isRootChild && node.parent.children[1]) {
-            filteredAttibs.key = String(node.parent.children.indexOf(node));
-        }
 
         for (const name in attribs) {
             if (Object.prototype.hasOwnProperty.call(attribs, name)) {

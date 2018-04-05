@@ -1,0 +1,22 @@
+<div ng-repeat="order in orders track by $index">
+    <span>{{order.name}}</span>
+</div>
+<header data-ng-repeat-start="type in types as list">
+    Header {{ type }}
+</header>
+<aside class="sidebar">
+    Sidebar
+</aside>
+<div class="body">
+    Body {{ type }}
+</div>
+<footer ng-repeat-end>
+    Footer {{ list.length }}
+</footer>
+<div>
+    <div ng-repeat="item in list"></div>
+    <p></p>
+    <span ng-repeat-start="item in list"></span>
+    <span></span>
+    <span ng-repeat-end></span>
+</div>

@@ -488,7 +488,8 @@ const possibleStandardNames: {[key: string]: string} = {
 const possibleAngularNames: {[key: string]: string} = {
     'ng-click': 'onClick',
     'ng-class': 'className',
-    'ng-bind-html': 'dangerouslySetInnerHTML'
+    'ng-bind-html': 'dangerouslySetInnerHTML',
+    'ng-disabled': 'disabled'
 };
 
 export const reactInterpolation: {
