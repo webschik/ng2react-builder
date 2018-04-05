@@ -1,9 +1,11 @@
 import {AST} from 'parse5/lib';
 import {AngularLexer, AngularParser, Angular, initAngular} from '../angular';
-import {DirectiveReplaceInfo, ReactComponentOptions} from '../index';
+import {AngularInterpolateOptions, DirectiveReplaceInfo, ReactComponentOptions} from '../index';
 import {angularAttr2React, htmlAttr2React, reactInterpolation} from '../react';
+import cleanNgAttrExpression from './clean-ng-attr-expression';
 import interpolate from './interpolate';
 import searchNgAttr from './search-ng-attr';
+import stringifyNgExpression from './stringify-ng-expression';
 
 const angular: Angular = initAngular();
 const Serializer = require('parse5/lib/serializer/index');
@@ -19,7 +21,7 @@ export default function serialize (
     serializerOptions: {treeAdapter: AST.TreeAdapter},
     componentOptions: ReactComponentOptions
 ): string {
-    const {replaceDirectives, angular: {interpolate: {bindOnce}}} = componentOptions;
+    const {replaceDirectives} = componentOptions;
     const serializer = new Serializer(fragment, serializerOptions);
     const lexer: AngularLexer = new angular.Lexer({
         csp: false,
@@ -33,6 +35,8 @@ export default function serialize (
             undefined
         }
     });
+    const ngInterpolateOptions: AngularInterpolateOptions =
+        componentOptions.angular.interpolate as AngularInterpolateOptions;
 
     serializer._serializeElement = function (node: AST.HtmlParser2.Element) {
         let condition: string = '';
@@ -46,10 +50,14 @@ export default function serialize (
                 switch (name) {
                     case 'ng-if':
                     case 'ng-show':
-                        condition += condition ? ` && ${ value }` : value;
-                        break;
                     case 'ng-hide':
-                        condition += condition ? ` && !${ value }` : `!${ value }`;
+                        let attrValue: string = cleanNgAttrExpression(value, ngInterpolateOptions);
+
+                        if (name === 'ng-hide') {
+                            attrValue = `!${ attrValue }`;
+                        }
+
+                        condition += condition ? ` && ${ attrValue }` : attrValue;
                         break;
                     default:
                     //
@@ -156,51 +164,61 @@ export default function serialize (
                 this.html += attr.namespace + ':' + attr.name;
             }
 
-            const interpolatedValue: string = value && interpolate(ngParser, value, componentOptions);
-            const isEventHandlerAttr: boolean = /^on[A-Z][a-z]{3,}/.test(attr.name);
+            let reactAttrValue: string;
 
-            // has interpolation or event handler
-            if (value !== interpolatedValue || isEventHandlerAttr) {
-                if (interpolatedValue) {
-                    let attrValue: string = interpolatedValue
-                        .trim()
-                        .replace(bindOnce, '')
-                        .replace(/;$/, '');
+            this.html += '=';
 
-                    if (isEventHandlerAttr) {
-                        attrValue = attrValue
-                            .replace(/\(\)/g, '')
-                            .replace(/([a-z])\(([^\)])/g, '$1.bind(null, $2');
-                    }
-
-                    this.html += '=';
-                    const {startSymbol, endSymbol} = reactInterpolation;
-                    const attrValueLastIndex: number = attrValue.length - 1;
-
-                    if (
-                        attrValue.indexOf(startSymbol) === 0 &&
-                        attrValue.lastIndexOf(startSymbol) === 0 &&
-                        attrValue.indexOf(endSymbol) === attrValueLastIndex &&
-                        attrValue.lastIndexOf(endSymbol) === attrValueLastIndex
-                    ) {
-                        this.html += attrValue;
-                    } else if (
-                        attrValue.includes(reactInterpolation.startSymbol) &&
-                        attrValue.includes(reactInterpolation.endSymbol)
-                    ) {
-                        this.html +=
-                            `${ startSymbol }\`` +
-                            attrValue.replace(new RegExp(`\\${ startSymbol }`, 'g'), '${') +
-                            `\`${ endSymbol }`;
-                    } else if (isEventHandlerAttr) {
-                        this.html += reactInterpolation.startSymbol  + attrValue + reactInterpolation.endSymbol;
-                    } else {
-                        this.html += '"' + attrValue + '"';
-                    }
-                }
+            if (attr.name === 'dangerouslySetInnerHTML') {
+                reactAttrValue = reactInterpolation.startSymbol +
+                    (value ? `{__html: ${
+                        stringifyNgExpression(ngParser, cleanNgAttrExpression(value, ngInterpolateOptions))
+                    }}` : '') +
+                    reactInterpolation.endSymbol;
             } else {
-                this.html += '="' + value + '"';
+                const interpolatedValue: string = value && interpolate(ngParser, value, componentOptions);
+                const isEventHandlerAttr: boolean = /^on[A-Z][a-z]{3,}/.test(attr.name);
+
+                // has interpolation or event handler
+                if (value !== interpolatedValue || isEventHandlerAttr) {
+                    if (interpolatedValue) {
+                        let attrValue: string = cleanNgAttrExpression(interpolatedValue, ngInterpolateOptions);
+
+                        if (isEventHandlerAttr) {
+                            attrValue = attrValue
+                                .replace(/\(\)/g, '')
+                                .replace(/([a-z])\(([^\)])/g, '$1.bind(null, $2');
+                        }
+
+                        const {startSymbol, endSymbol} = reactInterpolation;
+                        const attrValueLastIndex: number = attrValue.length - 1;
+
+                        if (
+                            attrValue.indexOf(startSymbol) === 0 &&
+                            attrValue.lastIndexOf(startSymbol) === 0 &&
+                            attrValue.indexOf(endSymbol) === attrValueLastIndex &&
+                            attrValue.lastIndexOf(endSymbol) === attrValueLastIndex
+                        ) {
+                            reactAttrValue = attrValue;
+                        } else if (
+                            attrValue.includes(reactInterpolation.startSymbol) &&
+                            attrValue.includes(reactInterpolation.endSymbol)
+                        ) {
+                            reactAttrValue =
+                                `${ startSymbol }\`` +
+                                attrValue.replace(new RegExp(`\\${ startSymbol }`, 'g'), '${') +
+                                `\`${ endSymbol }`;
+                        } else if (isEventHandlerAttr) {
+                            reactAttrValue = reactInterpolation.startSymbol + attrValue + reactInterpolation.endSymbol;
+                        } else {
+                            reactAttrValue = `"${ attrValue }"`;
+                        }
+                    }
+                } else {
+                    reactAttrValue = `"${ interpolatedValue }"`;
+                }
             }
+
+            this.html += reactAttrValue;
         }
     };
 

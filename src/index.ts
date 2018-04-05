@@ -16,6 +16,12 @@ export interface DirectiveReplaceInfo {
     valueProp?: string;
 }
 
+export interface AngularInterpolateOptions {
+    startSymbol: string;
+    endSymbol: string;
+    bindOnce: string;
+}
+
 export interface ReactComponentOptions {
     template?: string;
     replaceDirectives?: {
@@ -28,11 +34,7 @@ export interface ReactComponentOptions {
         prettier?: prettier.Options;
     };
     angular?: {
-        interpolate: {
-            startSymbol?: string;
-            endSymbol?: string;
-            bindOnce?: string;
-        }
+        interpolate: Partial<AngularInterpolateOptions>;
     };
 }
 
