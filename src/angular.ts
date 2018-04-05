@@ -25,6 +25,9 @@ export interface AngularASTExpression {
     arguments?: AngularASTExpression[];
     property?: AngularASTExpression;
     object?: AngularASTExpression;
+    left?: AngularASTExpression;
+    right?: AngularASTExpression;
+    operator?: string;
 }
 
 export interface AngularParser {

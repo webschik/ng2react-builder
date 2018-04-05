@@ -15,15 +15,27 @@ function stringifyCallExpression (expression: AngularASTExpression) {
 
     return `${ callee.name }(${ args.map((arg: AngularASTExpression) => {
         if (arg.type === 'Literal') {
-            return `'${ arg.value }'`;
+            return `'${ stringifyLiteral(arg) }'`;
         }
 
-        return arg.value;
+        return stringifyExpression(arg);
     }).join(', ') })`;
 }
 
 function stringifyMemberExpression (expression: AngularASTExpression) {
     return `${ expression.object.name }.${ expression.property.name }`;
+}
+
+function stringifyBinaryExpression ({left, operator, right}: AngularASTExpression) {
+    return `${ left ? stringifyExpression(left) : '' }${ operator }${ right ? stringifyExpression(right) : '' }`;
+}
+
+function stringifyIdentifier (expression: AngularASTExpression) {
+    return expression.name || '';
+}
+
+function stringifyLiteral (expression: AngularASTExpression) {
+    return expression.value || '';
 }
 
 function stringifyExpression (expression: AngularASTExpression): string {
@@ -36,8 +48,14 @@ function stringifyExpression (expression: AngularASTExpression): string {
         case 'MemberExpression':
             output += stringifyMemberExpression(expression);
             break;
+        case 'BinaryExpression':
+            output += stringifyBinaryExpression(expression);
+            break;
         case 'Identifier':
-            output += expression.name || '';
+            output += stringifyIdentifier(expression);
+            break;
+        case 'Literal':
+            output += stringifyLiteral(expression);
             break;
         default:
         //
