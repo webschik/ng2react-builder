@@ -60,7 +60,7 @@ export default function serialize (
         const isRootChild: boolean = Boolean(node.parent && node.parent.type === 'root');
 
         if (condition) {
-            if (this.html && !isRootChild) {
+            if (!isRootChild) {
                 isConditionWrapped = true;
                 this.html += '{';
             }
@@ -92,13 +92,18 @@ export default function serialize (
         }
 
         if (isRootChild && node.next) {
-            this.html += ',';
+            this.html += ', \n';
         }
     };
 
     serializer._serializeAttributes = function (node: AST.HtmlParser2.Element) {
         const {attribs} = node;
         const filteredAttibs: {[key: string]: string} = {};
+        const isRootChild: boolean = Boolean(node.parent && node.parent.type === 'root');
+
+        if (isRootChild && node.parent.children[1]) {
+            filteredAttibs.key = String(node.parent.children.indexOf(node));
+        }
 
         for (const name in attribs) {
             if (Object.prototype.hasOwnProperty.call(attribs, name)) {

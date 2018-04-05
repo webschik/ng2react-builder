@@ -30,12 +30,14 @@ export default function parseTemplate (template: string, options: ReactComponent
 
         return true;
     });
-    const rootNodesCount: number = children.length;
+
+    children.forEach((node: AST.HtmlParser2.Node, index: number, children: AST.HtmlParser2.Node[]) => {
+        node.prev = children[index - 1];
+        node.next = children[index + 1];
+    });
 
     fragment.children = children;
     fragment.childNodes = children;
-    fragment.firstChild = children[0];
-    fragment.lastChild = children[rootNodesCount - 1] || fragment.firstChild;
 
     const output: string = serialize(fragment, {
         treeAdapter: Object.assign({}, treeAdapter, {
@@ -66,7 +68,7 @@ export default function parseTemplate (template: string, options: ReactComponent
     }, options);
 
     return {
-        template: output,
+        template: fragment.children[1] ? `[\n${ output }\n]` : `(\n${ output }\n)`,
         methods
     };
 }
