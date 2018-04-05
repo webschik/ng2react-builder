@@ -174,10 +174,14 @@ export default function serialize (
                     }
 
                     this.html += '=';
+                    const {startSymbol, endSymbol} = reactInterpolation;
+                    const attrValueLastIndex: number = attrValue.length - 1;
 
                     if (
-                        attrValue[0] === reactInterpolation.startSymbol &&
-                        attrValue[attrValue.length - 1] === reactInterpolation.endSymbol
+                        attrValue.indexOf(startSymbol) === 0 &&
+                        attrValue.lastIndexOf(startSymbol) === 0 &&
+                        attrValue.indexOf(endSymbol) === attrValueLastIndex &&
+                        attrValue.lastIndexOf(endSymbol) === attrValueLastIndex
                     ) {
                         this.html += attrValue;
                     } else if (
