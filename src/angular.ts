@@ -27,6 +27,9 @@ export interface AngularASTExpression {
     object?: AngularASTExpression;
     left?: AngularASTExpression;
     right?: AngularASTExpression;
+    test?: AngularASTExpression;
+    alternate?: AngularASTExpression;
+    consequent?: AngularASTExpression;
     operator?: string;
 }
 

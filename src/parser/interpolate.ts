@@ -13,13 +13,7 @@ function stringifyCallExpression (expression: AngularASTExpression) {
         return callee.name;
     }
 
-    return `${ callee.name }(${ args.map((arg: AngularASTExpression) => {
-        if (arg.type === 'Literal') {
-            return `'${ stringifyLiteral(arg) }'`;
-        }
-
-        return stringifyExpression(arg);
-    }).join(', ') })`;
+    return `${ callee.name }(${ args.map(stringifyExpression).join(', ') })`;
 }
 
 function stringifyMemberExpression (expression: AngularASTExpression) {
@@ -30,12 +24,16 @@ function stringifyBinaryExpression ({left, operator, right}: AngularASTExpressio
     return `${ left ? stringifyExpression(left) : '' }${ operator }${ right ? stringifyExpression(right) : '' }`;
 }
 
+function stringifyConditionalExpression ({alternate, test, consequent}: AngularASTExpression) {
+    return `${ stringifyExpression(test) }?${ stringifyExpression(alternate) }:${ stringifyExpression(consequent) }`;
+}
+
 function stringifyIdentifier (expression: AngularASTExpression) {
     return expression.name || '';
 }
 
-function stringifyLiteral (expression: AngularASTExpression) {
-    return expression.value || '';
+function stringifyLiteral ({value}: AngularASTExpression) {
+    return value ? `'${ value }'` : '';
 }
 
 function stringifyExpression (expression: AngularASTExpression): string {
@@ -50,6 +48,9 @@ function stringifyExpression (expression: AngularASTExpression): string {
             break;
         case 'BinaryExpression':
             output += stringifyBinaryExpression(expression);
+            break;
+        case 'ConditionalExpression':
+            output += stringifyConditionalExpression(expression);
             break;
         case 'Identifier':
             output += stringifyIdentifier(expression);
