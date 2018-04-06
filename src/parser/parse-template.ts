@@ -1,5 +1,6 @@
 import {parseFragment, treeAdapters, AST} from 'parse5';
 import {ComponentInfo, ComponentMethod, DirectiveReplaceInfo, ReactComponentOptions} from '../index';
+import hasNextNonEmptyNode from './has-next-non-empty-node';
 import ngToReactAttrs from './ng-to-react-attrs';
 import searchNgAttr from './search-ng-attr';
 import serialize from './serialize';
@@ -21,23 +22,6 @@ export default function parseTemplate (template: string, options: ReactComponent
     const fragment: AST.HtmlParser2.DocumentFragment = parseFragment(template, {
         treeAdapter
     }) as AST.HtmlParser2.DocumentFragment;
-    const children: AST.HtmlParser2.Node[] = fragment.children.filter((node: AST.HtmlParser2.Node) => {
-        if (node.type === 'text') {
-            const {data} = node as AST.HtmlParser2.TextNode;
-
-            return Boolean(data && data.trim());
-        }
-
-        return true;
-    });
-
-    children.forEach((node: AST.HtmlParser2.Node, index: number, children: AST.HtmlParser2.Node[]) => {
-        node.prev = children[index - 1];
-        node.next = children[index + 1];
-    });
-
-    fragment.children = children;
-    fragment.childNodes = children;
 
     const output: string = serialize(fragment, {
         treeAdapter: Object.assign({}, treeAdapter, {
@@ -68,7 +52,7 @@ export default function parseTemplate (template: string, options: ReactComponent
     }, options);
 
     return {
-        template: fragment.children[1] ? `[\n${ output }\n]` : `(\n${ output }\n)`,
+        template: hasNextNonEmptyNode(fragment.children[0]) ? `[\n${ output }\n]` : `(\n${ output }\n)`,
         methods
     };
 }

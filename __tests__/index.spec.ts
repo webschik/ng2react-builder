@@ -6,7 +6,7 @@ import {createReactComponent} from '../src';
 const readFile = promisify(fs.readFile);
 
 describe('createReactComponent()', () => {
-    xdescribe('component1', () => {
+    describe('component1', () => {
         it('should generate TSX component', () => {
             return Promise.all<string>([
                 readFile(path.resolve(__dirname, './component1/template.html'), 'utf8'),
@@ -30,7 +30,7 @@ describe('createReactComponent()', () => {
             });
         });
     });
-    xdescribe('component2', () => {
+    describe('component2', () => {
         it('should generate TSX component', () => {
             return Promise.all<string>([
                 readFile(path.resolve(__dirname, './component2/template.html'), 'utf8'),

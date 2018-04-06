@@ -3,7 +3,11 @@ import {AngularLexer, AngularParser, Angular, initAngular} from '../angular';
 import {AngularInterpolateOptions, DirectiveReplaceInfo, ReactComponentOptions} from '../index';
 import {angularAttr2React, htmlAttr2React, reactInterpolation} from '../react';
 import cleanNgAttrExpression from './clean-ng-attr-expression';
+import getNgIteratorEndNode from './get-ng-iterator-end-node';
+import getNgIteratorStartAttr from './get-ng-iterator-start-attr';
+import hasNextNonEmptyNode from './has-next-non-empty-node';
 import interpolate from './interpolate';
+import isNgIteratorChild from './is-ng-iterator-child';
 import parseNgIterator from './parse-ng-iterator';
 import searchNgAttr from './search-ng-attr';
 import stringifyNgExpression from './stringify-ng-expression';
@@ -69,32 +73,37 @@ export default function serialize (
         }
 
         const parent: AST.HtmlParser2.Element = node.parent as AST.HtmlParser2.Element;
-        const isRootChild: boolean = Boolean(parent && parent.type === 'root');
-        const isChildOfIterator: boolean = Boolean(parent && parent.attribs && parent.attribs['ng-repeat-start']);
-        const iteratorStartAttr: string = attribs['ng-repeat'] || attribs['ng-repeat-start'];
-        const hasIteratorEnd: boolean = Boolean(attribs['ng-repeat'] || ('ng-repeat-end' in attribs));
-        const hasIteratorWrapper: boolean = !isRootChild;
-        let hasConditionWrapper: boolean = false;
-
-        if (condition) {
-            if (!isRootChild) {
-                hasConditionWrapper = true;
-                this.html += reactInterpolation.startSymbol;
-            }
-
-            this.html += `${ condition } ? (`;
-        }
+        const isRootChild: boolean = parent.type === 'root';
+        const iteratorStartAttr: string = getNgIteratorStartAttr(node);
+        const isIteratorChild: boolean = isNgIteratorChild(node);
+        const hasInterpolateWrapper: boolean =
+            !isRootChild &&
+            !getNgIteratorStartAttr(parent) &&
+            !(node as any).htmlEnd;
 
         if (iteratorStartAttr) {
             const {aliasAs, collectionIdentifier, valueIdentifier} = parseNgIterator(iteratorStartAttr);
-
-            if (hasIteratorWrapper) {
-                this.html += reactInterpolation.startSymbol;
-            }
+            const iteratorEndNode: AST.HtmlParser2.Element = getNgIteratorEndNode(node);
+            const hasMultipleIteratorNodes: boolean = Boolean(iteratorEndNode && node !== iteratorEndNode);
 
             this.html += `
+                ${ hasInterpolateWrapper ? reactInterpolation.startSymbol : ''}
+                ${ condition ? `${ condition } ? (` : ''}
                 ${ collectionIdentifier }.map((${ valueIdentifier }, index${ aliasAs ? `, ${ aliasAs }` : '' }) =>
-                ${ reactInterpolation.startSymbol }return ${ hasIteratorEnd ? '(' : '[' }
+                ${ reactInterpolation.startSymbol }return ${ hasMultipleIteratorNodes ? '[' : '(' }
+            `;
+
+            (iteratorEndNode as any).htmlEnd = `
+                ${ hasMultipleIteratorNodes ? ']' : ')' }
+                ${ reactInterpolation.endSymbol })
+                ${ condition ? ') : null' : '' }
+                ${ hasInterpolateWrapper ? reactInterpolation.endSymbol : '' }
+            `;
+        } else if (condition) {
+            this.html += `${ hasInterpolateWrapper ? reactInterpolation.startSymbol : ''}${ condition } ? (`;
+            (node as any).htmlEnd = `
+                ) : null${ hasInterpolateWrapper ? reactInterpolation.endSymbol : ''}
+                ${ (node as any).htmlEnd || ''}
             `;
         }
 
@@ -102,31 +111,20 @@ export default function serialize (
         const ns: string = this.treeAdapter.getNamespaceURI(node);
 
         this.html += '<' + tn;
-        const keyPrefix: string = 'item';
         let key: string = '';
+        let isTemplateLiteralKey: boolean;
 
-        if (iteratorStartAttr || hasIteratorEnd || isChildOfIterator) {
-            if (!key) {
-                key = keyPrefix;
-            }
-
-            key += '-${ index }';
+        if (isIteratorChild) {
+            key += 'item-${ index }';
+            isTemplateLiteralKey = true;
         }
 
-        if (
-            isRootChild &&
-            parent.children[1] &&
-            (iteratorStartAttr && !hasIteratorEnd || hasIteratorEnd && !iteratorStartAttr)
-        ) {
-            if (!key) {
-                key = keyPrefix;
-            }
-
-            key += `-${ parent.children.indexOf(node) }`;
+        if ((isRootChild || isIteratorChild) && parent.children[1]) {
+            key += `child-${ parent.children.indexOf(node) }`;
         }
 
         if (key) {
-            this.html += ` key={\`${ key }\`}`;
+            this.html += isTemplateLiteralKey ? ` key={\`${ key }\`}` : ` key="${ key }"`;
         }
 
         this._serializeAttributes(node);
@@ -144,20 +142,11 @@ export default function serialize (
             this.html += '/>';
         }
 
-        if (hasIteratorEnd) {
-            this.html += `
-                ${ iteratorStartAttr ? ')' : ']' }
-                ${ reactInterpolation.endSymbol })
-                ${ hasIteratorWrapper ? reactInterpolation.endSymbol : '' }
-            `;
-        }
+        this.html += (node as any).htmlEnd || '';
+        (node as any).htmlEnd = void 0;
 
-        if (condition) {
-            this.html += `) : null${ hasConditionWrapper ? reactInterpolation.endSymbol : '' }`;
-        }
-
-        if (isRootChild && node.next) {
-            this.html += ', \n';
+        if ((isRootChild || isIteratorChild) && hasNextNonEmptyNode(node)) {
+            this.html += ',';
         }
     };
 
@@ -251,16 +240,13 @@ export default function serialize (
                             attrValue.lastIndexOf(endSymbol) === attrValueLastIndex
                         ) {
                             reactAttrValue = attrValue;
-                        } else if (
-                            attrValue.includes(reactInterpolation.startSymbol) &&
-                            attrValue.includes(reactInterpolation.endSymbol)
-                        ) {
+                        } else if (attrValue.includes(startSymbol) && attrValue.includes(endSymbol)) {
                             reactAttrValue =
                                 `${ startSymbol }\`` +
                                 attrValue.replace(new RegExp(`\\${ startSymbol }`, 'g'), '${') +
                                 `\`${ endSymbol }`;
                         } else if (isEventHandlerAttr) {
-                            reactAttrValue = reactInterpolation.startSymbol + attrValue + reactInterpolation.endSymbol;
+                            reactAttrValue = startSymbol + attrValue + endSymbol;
                         } else {
                             reactAttrValue = `"${ attrValue }"`;
                         }
