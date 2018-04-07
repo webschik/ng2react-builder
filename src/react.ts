@@ -489,7 +489,8 @@ const possibleAngularNames: {[key: string]: string} = {
     'ng-click': 'onClick',
     'ng-class': 'className',
     'ng-bind-html': 'dangerouslySetInnerHTML',
-    'ng-disabled': 'disabled'
+    'ng-disabled': 'disabled',
+    'ng-src': 'src'
 };
 
 export const reactInterpolation: {

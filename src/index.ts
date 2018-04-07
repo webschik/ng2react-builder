@@ -1,14 +1,8 @@
 import * as prettier from 'prettier';
 import parseTemplate from './parser/parse-template';
 
-export interface ComponentMethod {
-    name: string;
-    args: string[];
-}
-
 export interface ComponentInfo {
     template: string;
-    methods: ComponentMethod[];
 }
 
 export interface DirectiveReplaceInfo {

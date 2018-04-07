@@ -15,7 +15,7 @@ function stringifyCallExpression (expression: AngularASTExpression) {
 }
 
 function stringifyMemberExpression (expression: AngularASTExpression) {
-    return `${ expression.object.name }.${ expression.property.name }`;
+    return `${ stringifyExpression(expression.object) }.${ stringifyExpression(expression.property) }`;
 }
 
 function stringifyBinaryExpression ({left, operator, right}: AngularASTExpression) {

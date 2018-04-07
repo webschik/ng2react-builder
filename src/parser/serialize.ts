@@ -82,15 +82,22 @@ export default function serialize (
             !(node as any).htmlEnd;
 
         if (iteratorStartAttr) {
-            const {aliasAs, collectionIdentifier, valueIdentifier} = parseNgIterator(iteratorStartAttr);
+            const {
+                aliasAs,
+                collectionIdentifier,
+                collectionTransform,
+                valueIdentifier
+            } = parseNgIterator(iteratorStartAttr);
             const iteratorEndNode: AST.HtmlParser2.Element = getNgIteratorEndNode(node);
             const hasMultipleIteratorNodes: boolean = Boolean(iteratorEndNode && node !== iteratorEndNode);
 
             this.html += `
                 ${ hasInterpolateWrapper ? reactInterpolation.startSymbol : ''}
                 ${ condition ? `${ condition } ? (` : ''}
-                ${ collectionIdentifier }.map((${ valueIdentifier }, index${ aliasAs ? `, ${ aliasAs }` : '' }) =>
-                ${ reactInterpolation.startSymbol }return ${ hasMultipleIteratorNodes ? '[' : '(' }
+                ${ collectionIdentifier }
+                    ${ collectionTransform.join('') }
+                    .map((${ valueIdentifier }, index${ aliasAs ? `, ${ aliasAs }` : '' }) =>
+                    ${ reactInterpolation.startSymbol }return ${ hasMultipleIteratorNodes ? '[' : '(' }
             `;
 
             (iteratorEndNode as any).htmlEnd = `

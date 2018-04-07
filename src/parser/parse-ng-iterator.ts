@@ -3,6 +3,7 @@ const iteratorExpPattern: RegExp = /^(?:(\s*[\$\w]+)|\(\s*([\$\w]+)\s*,\s*([\$\w
 const aliasPattern: RegExp = /^[$a-zA-Z_][$a-zA-Z0-9_]*$/;
 const aliasReservedNamesPattern: RegExp =
     /^(null|undefined|this|\$index|\$first|\$middle|\$last|\$even|\$odd|\$parent|\$root|\$id)$/;
+const collectionExpSeparator: RegExp = /\s*\|\s*/;
 
 export default function parseNgIterator (expression: string) {
     let match: RegExpMatchArray = expression.match(pattern);
@@ -11,7 +12,7 @@ export default function parseNgIterator (expression: string) {
         throw new Error(`Invalid iterator expression ${ expression }`);
     }
 
-    const [, iteratorExp, collectionIdentifier, aliasAs, trackByExp]: string[] = match;
+    const [, iteratorExp, collectionExp, aliasAs]: string[] = match;
 
     match = iteratorExp.match(iteratorExpPattern);
 
@@ -28,10 +29,29 @@ export default function parseNgIterator (expression: string) {
         );
     }
 
+    const collectionPipe: string[] = collectionExp.split(collectionExpSeparator);
+    const collectionTransform: string[] = [];
+
+    collectionPipe.slice(1).forEach((transform: string) => {
+        const [name, value] = transform.split(':');
+
+        switch (name) {
+            case 'filter':
+                collectionTransform.push(`.filter(${ value })`);
+                break;
+            case 'orderBy':
+                collectionTransform.push(`.sort(${ value })`);
+                break;
+            default:
+                //
+        }
+    });
+
     return {
         valueIdentifier,
         keyIdentifier,
-        collectionIdentifier,
+        collectionIdentifier: collectionPipe[0],
+        collectionTransform,
         aliasAs
     };
 }

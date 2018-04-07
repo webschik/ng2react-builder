@@ -1,5 +1,5 @@
 import {parseFragment, treeAdapters, AST} from 'parse5';
-import {ComponentInfo, ComponentMethod, DirectiveReplaceInfo, ReactComponentOptions} from '../index';
+import {ComponentInfo, DirectiveReplaceInfo, ReactComponentOptions} from '../index';
 import hasNextNonEmptyNode from './has-next-non-empty-node';
 import ngToReactAttrs from './ng-to-react-attrs';
 import searchNgAttr from './search-ng-attr';
@@ -10,7 +10,6 @@ const {createElement, adoptAttributes, getTagName} = defaultTreeAdapter;
 
 export default function parseTemplate (template: string, options: ReactComponentOptions): ComponentInfo {
     const {replaceDirectives} = options;
-    const methods: ComponentMethod[] = [];
     const treeAdapter: AST.TreeAdapter = Object.assign({}, defaultTreeAdapter, {
         createElement (tagName: string, namespaceURI: string, attrs: AST.Default.Attribute[]) {
             return createElement.call(this, tagName, namespaceURI, ngToReactAttrs(attrs));
@@ -52,7 +51,6 @@ export default function parseTemplate (template: string, options: ReactComponent
     }, options);
 
     return {
-        template: hasNextNonEmptyNode(fragment.children[0]) ? `[\n${ output }\n]` : `(\n${ output }\n)`,
-        methods
+        template: hasNextNonEmptyNode(fragment.children[0]) ? `[\n${ output }\n]` : `(\n${ output }\n)`
     };
 }
