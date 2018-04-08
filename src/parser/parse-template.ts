@@ -1,6 +1,6 @@
 import {parseFragment, treeAdapters, AST} from 'parse5';
 import {ComponentInfo, DirectiveReplaceInfo, ReactComponentOptions} from '../index';
-import hasNextNonEmptyNode from './has-next-non-empty-node';
+import hasNextNonEmptyNode from './has-multiple-sibling-elements';
 import ngToReactAttrs from './ng-to-react-attrs';
 import searchNgAttr from './search-ng-attr';
 import serialize from './serialize';

@@ -3,7 +3,7 @@ import * as React from 'react';
 export default class TestComponent extends React.PureComponent<{}> {
     render() {
         return [
-            orders.map((order, index) => {
+            orders.map((order, index: number) => {
                 return (
                     <div key={`item-${index}child-0`}>
                         <span>{order.name}</span>
@@ -11,7 +11,7 @@ export default class TestComponent extends React.PureComponent<{}> {
                 );
             }),
 
-            types.map((type, index, list) => {
+            types.map((type, index: number, list) => {
                 return [
                     <header key={`item-${index}child-2`}>Header {type}</header>,
                     <aside key={`item-${index}child-4`} className="sidebar">
@@ -25,12 +25,11 @@ export default class TestComponent extends React.PureComponent<{}> {
             }),
 
             <div key="child-10">
-                {list.map((item, index) => {
+                {list.map((item, index: number) => {
                     return <div key={`item-${index}child-1`} />;
                 })}
-                ,
                 <p key={`item-${index}child-3`} />,
-                {list.map((item, index) => {
+                {list.map((item, index: number) => {
                     return [
                         <span key={`item-${index}child-5`} />,
                         <span key={`item-${index}child-7`} />,

@@ -28,7 +28,7 @@ export default class PhoneList extends React.PureComponent<{}> {
                             {$ctrl.phones
                                 .filter($ctrl.query)
                                 .sort($ctrl.orderProp)
-                                .map((phone, index) => {
+                                .map((phone, index: number) => {
                                     return (
                                         <li key={`item-${index}`} className="thumbnail phone-list-item">
                                             <a href={`#!/phones/${phone.id}`} className="thumb">

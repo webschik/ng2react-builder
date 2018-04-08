@@ -5,9 +5,8 @@ import {angularAttr2React, htmlAttr2React, reactInterpolation} from '../react';
 import cleanNgAttrExpression from './clean-ng-attr-expression';
 import getNgIteratorEndNode from './get-ng-iterator-end-node';
 import getNgIteratorStartAttr from './get-ng-iterator-start-attr';
-import hasNextNonEmptyNode from './has-next-non-empty-node';
+import hasMultipleSiblingElements from './has-multiple-sibling-elements';
 import interpolate from './interpolate';
-import isNgIteratorChild from './is-ng-iterator-child';
 import parseNgIterator from './parse-ng-iterator';
 import searchNgAttr from './search-ng-attr';
 import stringifyNgExpression from './stringify-ng-expression';
@@ -24,13 +23,22 @@ const ngAttrsOutputBlackList: string[] = [
     'ng-repeat-end'
 ];
 
+export interface ASTElement extends AST.HtmlParser2.Element {
+    htmlEnd?: string;
+}
+
+interface ASTSerializer {
+    isOpenedIterator?: boolean;
+    [key: string]: any;
+}
+
 export default function serialize (
     fragment: AST.DocumentFragment,
     serializerOptions: {treeAdapter: AST.TreeAdapter},
     componentOptions: ReactComponentOptions
 ): string {
-    const {replaceDirectives} = componentOptions;
-    const serializer = new Serializer(fragment, serializerOptions);
+    const {replaceDirectives, react} = componentOptions;
+    const serializer: ASTSerializer = new Serializer(fragment, serializerOptions);
     const lexer: AngularLexer = new angular.Lexer({
         csp: false,
         expensiveChecks: false
@@ -46,7 +54,7 @@ export default function serialize (
     const ngInterpolateOptions: AngularInterpolateOptions =
         componentOptions.angular.interpolate as AngularInterpolateOptions;
 
-    serializer._serializeElement = function (node: AST.HtmlParser2.Element) {
+    serializer._serializeElement = function (node: ASTElement) {
         let condition: string = '';
         const {attribs} = node;
 
@@ -72,14 +80,15 @@ export default function serialize (
             }
         }
 
-        const parent: AST.HtmlParser2.Element = node.parent as AST.HtmlParser2.Element;
+        const parent: ASTElement = node.parent as ASTElement;
         const isRootChild: boolean = parent.type === 'root';
         const iteratorStartAttr: string = getNgIteratorStartAttr(node);
-        const isIteratorChild: boolean = isNgIteratorChild(node);
         const hasInterpolateWrapper: boolean =
             !isRootChild &&
             !getNgIteratorStartAttr(parent) &&
-            !(node as any).htmlEnd;
+            !node.htmlEnd;
+
+        this.isOpenedIterator = false;
 
         if (iteratorStartAttr) {
             const {
@@ -88,45 +97,55 @@ export default function serialize (
                 collectionTransform,
                 valueIdentifier
             } = parseNgIterator(iteratorStartAttr);
-            const iteratorEndNode: AST.HtmlParser2.Element = getNgIteratorEndNode(node);
-            const hasMultipleIteratorNodes: boolean = Boolean(iteratorEndNode && node !== iteratorEndNode);
+            const iteratorEndNode: ASTElement = getNgIteratorEndNode(node);
+
+            if (!iteratorEndNode) {
+                throw new Error('Missing iterator closing node: ng-repeat-end');
+            }
+
+            this.isOpenedIterator = node !== iteratorEndNode;
 
             this.html += `
                 ${ hasInterpolateWrapper ? reactInterpolation.startSymbol : ''}
                 ${ condition ? `${ condition } ? (` : ''}
                 ${ collectionIdentifier }
                     ${ collectionTransform.join('') }
-                    .map((${ valueIdentifier }, index${ aliasAs ? `, ${ aliasAs }` : '' }) =>
-                    ${ reactInterpolation.startSymbol }return ${ hasMultipleIteratorNodes ? '[' : '(' }
-            `;
+                    .map((
+                        ${ valueIdentifier },
+                        index${ react.typescript ? ': number' : ''}
+                        ${ aliasAs ? `, ${ aliasAs }` : '' }
+                    ) => ${ reactInterpolation.startSymbol }return ${ this.isOpenedIterator ? '[' : '(' }
+            `.trim();
 
-            (iteratorEndNode as any).htmlEnd = `
-                ${ hasMultipleIteratorNodes ? ']' : ')' }
+            iteratorEndNode.htmlEnd = `
+                ${ this.isOpenedIterator ? ']' : ')' }
                 ${ reactInterpolation.endSymbol })
                 ${ condition ? ') : null' : '' }
                 ${ hasInterpolateWrapper ? reactInterpolation.endSymbol : '' }
-            `;
+            `.trim();
         } else if (condition) {
             this.html += `${ hasInterpolateWrapper ? reactInterpolation.startSymbol : ''}${ condition } ? (`;
-            (node as any).htmlEnd = `
+            node.htmlEnd = `
                 ) : null${ hasInterpolateWrapper ? reactInterpolation.endSymbol : ''}
-                ${ (node as any).htmlEnd || ''}
-            `;
+                ${ node.htmlEnd || ''}
+            `.trim();
         }
 
         const tn: string = this.treeAdapter.getTagName(node);
         const ns: string = this.treeAdapter.getNamespaceURI(node);
-
-        this.html += '<' + tn;
+        const hasNextElementsSeparator: boolean = (
+            isRootChild || this.isOpenedIterator
+        ) && hasMultipleSiblingElements(node);
         let key: string = '';
         let isTemplateLiteralKey: boolean;
+        this.html += '<' + tn;
 
-        if (isIteratorChild) {
+        if (this.isOpenedIterator || iteratorStartAttr) {
             key += 'item-${ index }';
             isTemplateLiteralKey = true;
         }
 
-        if ((isRootChild || isIteratorChild) && parent.children[1]) {
+        if (hasNextElementsSeparator) {
             key += `child-${ parent.children.indexOf(node) }`;
         }
 
@@ -149,15 +168,15 @@ export default function serialize (
             this.html += '/>';
         }
 
-        this.html += (node as any).htmlEnd || '';
-        (node as any).htmlEnd = void 0;
+        this.html += node.htmlEnd || '';
+        node.htmlEnd = void 0;
 
-        if ((isRootChild || isIteratorChild) && hasNextNonEmptyNode(node)) {
+        if (hasNextElementsSeparator) {
             this.html += ',';
         }
     };
 
-    serializer._serializeAttributes = function (node: AST.HtmlParser2.Element) {
+    serializer._serializeAttributes = function (node: ASTElement) {
         const {attribs} = node;
         const filteredAttibs: {[key: string]: string} = {};
 

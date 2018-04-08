@@ -13,7 +13,7 @@ describe('createReactComponent()', () => {
         ]);
     }
 
-    describe('component1', () => {
+    xdescribe('component1', () => {
         it('should generate TSX component', () => {
             return getSources(
                 './component1/template.html',
@@ -38,7 +38,7 @@ describe('createReactComponent()', () => {
         });
     });
 
-    describe('component2', () => {
+    xdescribe('component2', () => {
         it('should generate TSX component', () => {
             return getSources(
                 './component2/template.html',
@@ -77,7 +77,7 @@ describe('createReactComponent()', () => {
         });
     });
 
-    describe('component4', () => {
+    xdescribe('component4', () => {
         it('should generate TSX component', () => {
             return getSources(
                 './component4/template.html',
@@ -96,7 +96,7 @@ describe('createReactComponent()', () => {
         });
     });
 
-    describe('component5', () => {
+    xdescribe('component5', () => {
         it('should generate TSX component', () => {
             return getSources(
                 './component5/template.html',

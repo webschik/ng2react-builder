@@ -4,14 +4,8 @@ export default class PhoneDetail extends React.PureComponent<{}> {
     render() {
         return [
             <div key="child-0" className="phone-images">
-                {$ctrl.phone.images.map((img, index) => {
-                    return (
-                        <img
-                            key={`item-${index}`}
-                            src={img}
-                            className="{selected: img === $ctrl.mainImageUrl}"
-                        />
-                    );
+                {$ctrl.phone.images.map((img, index: number) => {
+                    return <img key={`item-${index}`} src={img} className="{selected: img === $ctrl.mainImageUrl}" />;
                 })}
             </div>,
 
@@ -20,7 +14,7 @@ export default class PhoneDetail extends React.PureComponent<{}> {
             <p key="child-4">{$ctrl.phone.description}</p>,
 
             <ul key="child-6" className="phone-thumbs">
-                {$ctrl.phone.images.map((img, index) => {
+                {$ctrl.phone.images.map((img, index: number) => {
                     return (
                         <li key={`item-${index}`}>
                             <img src={img} onClick={$ctrl.setImage.bind(null, img)} />
@@ -34,7 +28,7 @@ export default class PhoneDetail extends React.PureComponent<{}> {
                     <span>Availability and Networks</span>
                     <dl>
                         <dt>Availability</dt>
-                        {$ctrl.phone.availability.map((availability, index) => {
+                        {$ctrl.phone.availability.map((availability, index: number) => {
                             return <dd key={`item-${index}`}>{availability}</dd>;
                         })}
                     </dl>
@@ -86,8 +80,8 @@ export default class PhoneDetail extends React.PureComponent<{}> {
                 <li>
                     <span>Size and Weight</span>
                     <dl>
-                        <dt key={`item-${index}`}>Dimensions</dt>
-                        {$ctrl.phone.sizeAndWeight.dimensions.map((dim, index) => {
+                        <dt>Dimensions</dt>
+                        {$ctrl.phone.sizeAndWeight.dimensions.map((dim, index: number) => {
                             return <dd key={`item-${index}`}>{dim}</dd>;
                         })}
                         <dt>Weight</dt>
