@@ -24,16 +24,19 @@ const ngAttrsOutputBlackList: string[] = [
 ];
 
 export interface ASTElement extends AST.HtmlParser2.Element {
+    isIteratorEnd?: boolean;
+    isGroupEnd?: boolean;
     htmlEnd?: string;
 }
 
 interface ASTSerializer {
-    isOpenedIterator?: boolean;
+    openedIteratorsCount: number;
+    openedElementGroupsCount: number;
     [key: string]: any;
 }
 
 export default function serialize (
-    fragment: AST.DocumentFragment,
+    fragment: AST.HtmlParser2.DocumentFragment,
     serializerOptions: {treeAdapter: AST.TreeAdapter},
     componentOptions: ReactComponentOptions
 ): string {
@@ -53,6 +56,14 @@ export default function serialize (
     });
     const ngInterpolateOptions: AngularInterpolateOptions =
         componentOptions.angular.interpolate as AngularInterpolateOptions;
+
+    serializer.openedIteratorsCount = 0;
+    serializer.openedElementGroupsCount = 0;
+
+    if (hasMultipleSiblingElements(fragment.firstChild)) {
+        serializer.openedElementGroupsCount++;
+        (fragment.lastChild as ASTElement).isGroupEnd = true;
+    }
 
     serializer._serializeElement = function (node: ASTElement) {
         let condition: string = '';
@@ -88,8 +99,6 @@ export default function serialize (
             !getNgIteratorStartAttr(parent) &&
             !node.htmlEnd;
 
-        this.isOpenedIterator = false;
-
         if (iteratorStartAttr) {
             const {
                 aliasAs,
@@ -102,9 +111,9 @@ export default function serialize (
             if (!iteratorEndNode) {
                 throw new Error('Missing iterator closing node: ng-repeat-end');
             }
+            const isGroupIterator: boolean = node !== iteratorEndNode;
 
-            this.isOpenedIterator = node !== iteratorEndNode;
-
+            this.openedIteratorsCount++;
             this.html += `
                 ${ hasInterpolateWrapper ? reactInterpolation.startSymbol : ''}
                 ${ condition ? `${ condition } ? (` : ''}
@@ -114,15 +123,21 @@ export default function serialize (
                         ${ valueIdentifier },
                         index${ react.typescript ? ': number' : ''}
                         ${ aliasAs ? `, ${ aliasAs }` : '' }
-                    ) => ${ reactInterpolation.startSymbol }return ${ this.isOpenedIterator ? '[' : '(' }
+                    ) => ${ reactInterpolation.startSymbol }return ${ isGroupIterator ? '[' : '(' }
             `.trim();
 
+            iteratorEndNode.isIteratorEnd = true;
             iteratorEndNode.htmlEnd = `
-                ${ this.isOpenedIterator ? ']' : ')' }
+                ${ isGroupIterator ? ']' : ')' }
                 ${ reactInterpolation.endSymbol })
                 ${ condition ? ') : null' : '' }
                 ${ hasInterpolateWrapper ? reactInterpolation.endSymbol : '' }
             `.trim();
+
+            if (isGroupIterator) {
+                this.openedElementGroupsCount++;
+                iteratorEndNode.isGroupEnd = true;
+            }
         } else if (condition) {
             this.html += `${ hasInterpolateWrapper ? reactInterpolation.startSymbol : ''}${ condition } ? (`;
             node.htmlEnd = `
@@ -133,24 +148,20 @@ export default function serialize (
 
         const tn: string = this.treeAdapter.getTagName(node);
         const ns: string = this.treeAdapter.getNamespaceURI(node);
-        const hasNextElementsSeparator: boolean = (
-            isRootChild || this.isOpenedIterator
-        ) && hasMultipleSiblingElements(node);
         let key: string = '';
-        let isTemplateLiteralKey: boolean;
+
         this.html += '<' + tn;
 
-        if (this.isOpenedIterator || iteratorStartAttr) {
+        if (this.openedIteratorsCount || iteratorStartAttr) {
             key += 'item-${ index }';
-            isTemplateLiteralKey = true;
         }
 
-        if (hasNextElementsSeparator) {
+        if (this.openedElementGroupsCount) {
             key += `child-${ parent.children.indexOf(node) }`;
         }
 
         if (key) {
-            this.html += isTemplateLiteralKey ? ` key={\`${ key }\`}` : ` key="${ key }"`;
+            this.html += key.includes('${') ? ` key={\`${ key }\`}` : ` key="${ key }"`;
         }
 
         this._serializeAttributes(node);
@@ -171,8 +182,16 @@ export default function serialize (
         this.html += node.htmlEnd || '';
         node.htmlEnd = void 0;
 
-        if (hasNextElementsSeparator) {
+        if (node.isGroupEnd) {
+            this.openedElementGroupsCount--;
+        }
+
+        if (this.openedElementGroupsCount) {
             this.html += ',';
+        }
+
+        if (node.isIteratorEnd) {
+            this.openedIteratorsCount--;
         }
     };
 

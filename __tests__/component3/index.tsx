@@ -10,7 +10,6 @@ export default class TestComponent extends React.PureComponent<{}> {
                     </div>
                 );
             }),
-
             types.map((type, index: number, list) => {
                 return [
                     <header key={`item-${index}child-2`}>Header {type}</header>,
@@ -23,12 +22,11 @@ export default class TestComponent extends React.PureComponent<{}> {
                     <footer key={`item-${index}child-8`}>Footer {list.length}</footer>
                 ];
             }),
-
             <div key="child-10">
                 {list.map((item, index: number) => {
                     return <div key={`item-${index}child-1`} />;
                 })}
-                <p key={`item-${index}child-3`} />,
+                <p />
                 {list.map((item, index: number) => {
                     return [
                         <span key={`item-${index}child-5`} />,
@@ -36,6 +34,7 @@ export default class TestComponent extends React.PureComponent<{}> {
                         <span key={`item-${index}child-9`} />
                     ];
                 })}
+                <div />
             </div>
         ];
     }

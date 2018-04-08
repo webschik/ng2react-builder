@@ -1,6 +1,19 @@
 import {AST} from 'parse5';
-import {ASTElement} from './serialize';
 
-export default function hasMultipleSiblingElements ({parent}: ASTElement): boolean {
-    return parent.children.filter((node: AST.HtmlParser2.Node) => node.type === 'tag')[1] !== undefined;
+export default function hasMultipleSiblingElements (node: AST.HtmlParser2.Node): boolean {
+    let elementsCount: number = 0;
+
+    while (node) {
+        if (node.type === 'tag') {
+            elementsCount++;
+        }
+
+        if (elementsCount > 1) {
+            return true;
+        }
+
+        node = node.next;
+    }
+
+    return false;
 }

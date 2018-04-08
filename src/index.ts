@@ -56,7 +56,6 @@ export function createReactComponent (customOptions: ReactComponentOptions): str
 
     const componentRenderResult: string = componentInfo && componentInfo.template || 'null';
 
-    debugger;
     return prettier.format(`
         ${ typescript ? 'import * as React from \'react\';' : 'import React from \'react\';'}
 
