@@ -1,9 +1,9 @@
-# ng2react
-[![Build Status](https://secure.travis-ci.org/webschik/ng2react.png?branch=master)](https://travis-ci.org/webschik/ng2react)
-[![npm](https://img.shields.io/npm/dm/ng2react.svg)](https://www.npmjs.com/package/ng2react)
-[![npm](https://img.shields.io/npm/v/ng2react.svg)](https://www.npmjs.com/package/ng2react)
-[![npm](https://img.shields.io/npm/l/ng2react.svg)](https://www.npmjs.com/package/ng2react)
-[![Coverage Status](https://coveralls.io/repos/github/webschik/ng2react/badge.svg?branch=master)](https://coveralls.io/github/webschik/ng2react?branch=master)
+# ng2react-builder
+[![Build Status](https://secure.travis-ci.org/webschik/ng2react-builder.png?branch=master)](https://travis-ci.org/webschik/ng2react-builder)
+[![npm](https://img.shields.io/npm/dm/ng2react-builder.svg)](https://www.npmjs.com/package/ng2react-builder)
+[![npm](https://img.shields.io/npm/v/ng2react-builder.svg)](https://www.npmjs.com/package/ng2react-builder)
+[![npm](https://img.shields.io/npm/l/ng2react-builder.svg)](https://www.npmjs.com/package/ng2react-builder)
+[![Coverage Status](https://coveralls.io/repos/github/webschik/ng2react-builder/badge.svg?branch=master)](https://coveralls.io/github/webschik/ng2react-builder?branch=master)
 
 This module will help you to migrate [Angular 1](https://angularjs.org/) project
 to [React.js](https://reactjs.org/)
@@ -15,12 +15,12 @@ Check my [test components](__tests__) to see how this module works. There are:
 
 ## Usage
 ```shell
-npm i -D ng2react
+npm i -D ng2react-builder
 ```
 
 ### via API
 ```js
-import {createReactComponent} from 'ng2react';
+import {createReactComponent} from 'ng2react-builder';
 
 createReactComponent({
     template: `<my-icon="user" class="icon"/>`,

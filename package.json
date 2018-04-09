@@ -1,5 +1,5 @@
 {
-  "name": "ng2react",
+  "name": "ng2react-builder",
   "description": "Angular1 -> React.js transpiler",
   "version": "0.1.0",
   "main": "dist/index.js",
@@ -8,7 +8,7 @@
     "pretest": "npm run lint",
     "test": "npx jest --no-cache",
     "lint": "npx tslint \"src/**/*.ts\" && npx tslint \"src/*.ts\"",
-    "prepublish": "npm test && npm run build",
+    "prepare": "npm test && npm run build",
     "build": "rm -rf dist && npx tsc",
     "precoverage": "npm test",
     "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
