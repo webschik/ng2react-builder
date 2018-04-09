@@ -1,3 +1,5 @@
+import {AngularIteratorInfo} from './parse-template';
+
 const pattern: RegExp = /^\s*([\s\S]+?)\s+in\s+([\s\S]+?)(?:\s+as\s+([\s\S]+?))?(?:\s+track\s+by\s+([\s\S]+?))?\s*$/;
 const iteratorExpPattern: RegExp = /^(?:(\s*[\$\w]+)|\(\s*([\$\w]+)\s*,\s*([\$\w]+)\s*\))$/;
 const aliasPattern: RegExp = /^[$a-zA-Z_][$a-zA-Z0-9_]*$/;
@@ -5,7 +7,7 @@ const aliasReservedNamesPattern: RegExp =
     /^(null|undefined|this|\$index|\$first|\$middle|\$last|\$even|\$odd|\$parent|\$root|\$id)$/;
 const collectionExpSeparator: RegExp = /\s*\|\s*/;
 
-export default function parseNgIterator (expression: string) {
+export default function parseNgIterator (expression: string): AngularIteratorInfo {
     let match: RegExpMatchArray = expression.match(pattern);
 
     if (!match) {

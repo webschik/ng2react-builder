@@ -24,16 +24,20 @@ export default class TestComponent extends React.PureComponent<{}> {
             }),
             <div key="child-10">
                 {list.map((item, index: number) => {
-                    return <div key={`item-${index}child-1`} />;
+                    return <div key={`item-${index}`} />;
                 })}
                 <p />
-                {list.map((item, index: number) => {
+                {list2.map((item2, index: number) => {
                     return [
                         <span key={`item-${index}child-5`} />,
-                        <span key={`item-${index}child-7`} />,
-                        <span key={`item-${index}child-9`} />
+                        <div key={`item-${index}child-7`} />,
+                        list3.map((item3, index: number) => {
+                            return [<span key={`item-${index}child-9`} />, <span key={`item-${index}child-11`} />];
+                        }),
+                        <div key={`item-${index}child-13`} />,
+                        <span key={`item-${index}child-15`} />
                     ];
-                })}
+                })},
                 <div />
             </div>
         ];

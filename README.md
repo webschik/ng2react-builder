@@ -9,10 +9,9 @@ This module will help you to migrate [Angular 1](https://angularjs.org/) project
 to [React.js](https://reactjs.org/)
 
 ## Examples
-Check my [Test component](__tests__/component) to see how this module works. There are:
-* [Angular1 template](__tests__/component/template.html)
-* Generated component in [Typescript (TSX)](__tests__/component/index.tsx)
-* Generated component in [Javascript (JSX)](__tests__/component/index.jsx)
+Check my [test components](__tests__) to see how this module works. There are:
+* [Angular1 template](__tests__/component5/template.html)
+* Generated component in [Typescript (TSX)](__tests__/component5/index.tsx)
 
 ## Usage
 ```shell
@@ -22,6 +21,38 @@ npm i -D ng2react
 ### via API
 ```js
 import {createReactComponent} from 'ng2react';
+
+createReactComponent({
+    template: `<my-icon="user" class="icon"/>`,
+    replaceDirectives: {
+        'my-icon': {
+            tagName: 'MyReactIcon',
+            valueProp: 'type'
+        }
+    },
+    react: {
+        typescript: true,
+        componentType: 'stateless',
+        componentName: 'TestComponent'
+    }
+});
+/*
+    import * as React from 'react';
+
+    const TestComponent: React.StatelessComponent<{}> = (props) => {
+        return <MyReactIcon type="user" className="icon" />;
+    };
+
+    export default TestComponent;
+*/
+
 ```
 
-*In progress... Check for updates*
+Method `createReactComponent` takes the next options:
+* `template` **[required]** - string with Angular template
+* `react` **[required]** - React component options
+* `react.componentName` **[required]** - React component name
+* `react.typescript` **[optional]** - output should be in Typescript. Default is **false**
+* `react.componentType` **[optional]** - 'pure', 'stateless', 'stateful'.  Default is **pure**
+* `replaceDirectives` **[optional]** - directives that you want to replace. It support tag names and attributes
+* `prettier` **[optional]** - [Prettier config](https://prettier.io/docs/en/options.html)

@@ -1,21 +1,46 @@
 import {parseFragment, treeAdapters, AST} from 'parse5';
-import {ComponentInfo, DirectiveReplaceInfo, ReactComponentOptions} from '../index';
-import hasMultipleSiblingElements from './has-multiple-sibling-elements';
-import ngToReactAttrs from './ng-to-react-attrs';
-import searchNgAttr from './search-ng-attr';
-import serialize from './serialize';
+import {ComponentInfo, ReactComponentOptions} from '../index';
+import parseNgAttrs from './parse-ng-attrs';
+import setReactTagName from './set-react-tag-name';
+import serialize from '../serializer/serialize';
 
 const defaultTreeAdapter: AST.TreeAdapter = treeAdapters.htmlparser2;
-const {createElement, adoptAttributes, getTagName} = defaultTreeAdapter;
+const {createElement, adoptAttributes} = defaultTreeAdapter;
 
-export default function parseTemplate (template: string, options: ReactComponentOptions): ComponentInfo {
-    const {replaceDirectives} = options;
+export interface AngularIteratorInfo {
+    valueIdentifier: string;
+    collectionIdentifier: string;
+    collectionTransform: string[];
+    keyIdentifier?: string;
+    aliasAs?: string;
+}
+
+export interface ASTElement extends AST.HtmlParser2.Element {
+    reactTagName?: string;
+    htmlEnd?: string;
+    condition?: string;
+    isIteratorChild?: boolean;
+    isIteratorEnd?: boolean;
+    isGroupIterator?: boolean;
+    openedElementGroupsCount?: number;
+    iteratorInfo?: AngularIteratorInfo;
+}
+
+export default function parseTemplate (template: string, componentOptions: ReactComponentOptions): ComponentInfo {
     const treeAdapter: AST.TreeAdapter = Object.assign({}, defaultTreeAdapter, {
         createElement (tagName: string, namespaceURI: string, attrs: AST.Default.Attribute[]) {
-            return createElement.call(this, tagName, namespaceURI, ngToReactAttrs(attrs));
+            const el: ASTElement = createElement.call(this, tagName, namespaceURI, attrs);
+
+            setReactTagName(el, componentOptions);
+            parseNgAttrs(el, componentOptions);
+
+            return el;
         },
-        adoptAttributes (recipient: AST.Element, attrs: AST.Default.Attribute[]) {
-            return adoptAttributes.call(this, recipient, ngToReactAttrs(attrs));
+        adoptAttributes (el: ASTElement, attrs: AST.Default.Attribute[]) {
+            adoptAttributes.call(this, el, attrs);
+
+            setReactTagName(el, componentOptions);
+            parseNgAttrs(el, componentOptions);
         }
     });
     const fragment: AST.HtmlParser2.DocumentFragment = parseFragment(template, {
@@ -24,33 +49,13 @@ export default function parseTemplate (template: string, options: ReactComponent
 
     const output: string = serialize(fragment, {
         treeAdapter: Object.assign({}, treeAdapter, {
-            getTagName (node: AST.HtmlParser2.Element) {
-                const {attribs, name} = node;
-
-                if (replaceDirectives) {
-                    const directiveInfo: DirectiveReplaceInfo = searchNgAttr(name, replaceDirectives);
-
-                    if (directiveInfo) {
-                        return directiveInfo.tagName;
-                    }
-
-                    for (const name in attribs) {
-                        if (Object.prototype.hasOwnProperty.call(attribs, name)) {
-                            const directiveInfo: DirectiveReplaceInfo = searchNgAttr(name, replaceDirectives);
-
-                            if (directiveInfo) {
-                                return directiveInfo.tagName;
-                            }
-                        }
-                    }
-                }
-
-                return getTagName.call(this, node);
+            getTagName (node: ASTElement) {
+                return node.reactTagName || node.name;
             }
         })
-    }, options);
+    }, componentOptions);
 
     return {
-        template: hasMultipleSiblingElements(fragment.firstChild) ? `[\n${ output }\n]` : `(\n${ output }\n)`
+        template: output
     };
 }
