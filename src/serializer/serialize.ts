@@ -2,7 +2,7 @@ import {AST} from 'parse5/lib';
 import {AngularLexer, AngularParser, Angular, initAngular} from '../angular';
 import {AngularInterpolateOptions, ReactComponentOptions} from '../index';
 import {ASTElement} from '../parser/parse-template';
-import {reactInterpolation} from '../react';
+import {htmlAttr2React, reactInterpolation} from '../react';
 import cleanNgAttrExpression from './clean-ng-attr-expression';
 import hasMultipleSiblingElements from '../parser/has-multiple-sibling-elements';
 import interpolate from './interpolate';
@@ -168,74 +168,91 @@ export default function serialize (
 
         for (let i = 0, attrsLength = attrs.length; i < attrsLength; i++) {
             const attr: AST.Default.Attribute = attrs[i];
-            const value: string = Serializer.escapeString(attr.value, true);
+            let reactAttrValue: string = Serializer.escapeString(attr.value, true);
+            let attrName: string = attr.name;
+            let isClassOddAttr: boolean;
+            let isClassEvenAttr: boolean;
 
             this.html += ' ';
 
+            if (attrName === 'ng-class-odd') {
+                isClassOddAttr = true;
+                attrName = htmlAttr2React('class');
+            } else if (attrName === 'ng-class-even') {
+                isClassEvenAttr = true;
+                attrName = htmlAttr2React('class');
+            }
+
             if (!attr.namespace) {
-                this.html += attr.name;
+                this.html += attrName;
             } else if (attr.namespace === NS.XML) {
-                this.html += 'xml:' + attr.name;
+                this.html += 'xml:' + attrName;
             } else if (attr.namespace === NS.XMLNS) {
-                if (attr.name !== 'xmlns') {
+                if (attrName !== 'xmlns') {
                     this.html += 'xmlns:';
                 }
 
-                this.html += attr.name;
+                this.html += attrName;
             } else if (attr.namespace === NS.XLINK) {
-                this.html += 'xlink:' + attr.name;
+                this.html += 'xlink:' + attrName;
             } else {
-                this.html += attr.namespace + ':' + attr.name;
+                this.html += attr.namespace + ':' + attrName;
             }
 
-            let reactAttrValue: string;
-
             this.html += '=';
+            const {startSymbol, endSymbol} = reactInterpolation;
 
-            if (attr.name === 'dangerouslySetInnerHTML') {
-                reactAttrValue = reactInterpolation.startSymbol +
-                    (value ? `{__html: ${
-                        stringifyNgExpression(ngParser, cleanNgAttrExpression(value, ngInterpolateOptions))
+            if (isClassOddAttr) {
+                reactAttrValue = `${ startSymbol}(index % 2) ? (${
+                    stringifyNgExpression(ngParser, cleanNgAttrExpression(reactAttrValue, ngInterpolateOptions))
+                }) : undefined${ endSymbol }`;
+            } else if (isClassEvenAttr) {
+                reactAttrValue = `${ startSymbol}(index % 2) ? undefined : (${
+                    stringifyNgExpression(ngParser, cleanNgAttrExpression(reactAttrValue, ngInterpolateOptions))
+                })${ endSymbol }`;
+            } else if (attrName === 'dangerouslySetInnerHTML') {
+                reactAttrValue = startSymbol +
+                    (reactAttrValue ? `{__html: ${
+                        stringifyNgExpression(ngParser, cleanNgAttrExpression(reactAttrValue, ngInterpolateOptions))
                     }}` : '') +
-                    reactInterpolation.endSymbol;
+                    endSymbol;
             } else {
-                const interpolatedValue: string = value && interpolate(ngParser, value, componentOptions);
-                const isEventHandlerAttr: boolean = /^on[A-Z][a-z]{3,}/.test(attr.name);
+                const interpolatedValue: string =
+                    reactAttrValue &&
+                    interpolate(ngParser, reactAttrValue, componentOptions);
+                const isEventHandlerAttr: boolean = /^on[A-Z][a-z]{3,}/.test(attrName);
 
                 // has interpolation or event handler
-                if (value !== interpolatedValue || isEventHandlerAttr) {
-                    if (interpolatedValue) {
-                        let attrValue: string = cleanNgAttrExpression(interpolatedValue, ngInterpolateOptions);
+                if (interpolatedValue && (reactAttrValue !== interpolatedValue || isEventHandlerAttr)) {
+                    let attrValue: string = cleanNgAttrExpression(interpolatedValue, ngInterpolateOptions);
 
-                        if (isEventHandlerAttr) {
-                            attrValue = attrValue
-                                .replace(/\(\)/g, '')
-                                .replace(/([a-z])\(([^\)])/g, '$1.bind(null, $2');
-                        }
+                    if (isEventHandlerAttr) {
+                        attrValue = attrValue
+                            .replace(/\(\)/g, '')
+                            .replace(/([a-z])\(([^\)])/g, '$1.bind(null, $2');
+                    }
 
-                        const {startSymbol, endSymbol} = reactInterpolation;
-                        const attrValueLastIndex: number = attrValue.length - 1;
+                    const attrValueLastIndex: number = attrValue.length - 1;
 
-                        if (
-                            attrValue.indexOf(startSymbol) === 0 &&
-                            attrValue.lastIndexOf(startSymbol) === 0 &&
-                            attrValue.indexOf(endSymbol) === attrValueLastIndex &&
-                            attrValue.lastIndexOf(endSymbol) === attrValueLastIndex
-                        ) {
-                            reactAttrValue = attrValue;
-                        } else if (attrValue.includes(startSymbol) && attrValue.includes(endSymbol)) {
-                            reactAttrValue =
-                                `${ startSymbol }\`` +
-                                attrValue.replace(new RegExp(`\\${ startSymbol }`, 'g'), '${') +
-                                `\`${ endSymbol }`;
-                        } else if (isEventHandlerAttr) {
-                            reactAttrValue = startSymbol + attrValue + endSymbol;
-                        } else {
-                            reactAttrValue = `"${ attrValue }"`;
-                        }
+                    if (
+                        attrValue.indexOf(startSymbol) === 0 &&
+                        attrValue.lastIndexOf(startSymbol) === 0 &&
+                        attrValue.indexOf(endSymbol) === attrValueLastIndex &&
+                        attrValue.lastIndexOf(endSymbol) === attrValueLastIndex
+                    ) {
+                        reactAttrValue = attrValue;
+                    } else if (attrValue.includes(startSymbol) && attrValue.includes(endSymbol)) {
+                        reactAttrValue =
+                            `${ startSymbol }\`` +
+                            attrValue.replace(new RegExp(`\\${ startSymbol }`, 'g'), '${') +
+                            `\`${ endSymbol }`;
+                    } else if (isEventHandlerAttr) {
+                        reactAttrValue = startSymbol + attrValue + endSymbol;
+                    } else {
+                        reactAttrValue = `"${ attrValue }"`;
                     }
                 } else {
-                    reactAttrValue = `"${ interpolatedValue }"`;
+                    reactAttrValue = interpolatedValue ? `"${ interpolatedValue }"` : '';
                 }
             }
 

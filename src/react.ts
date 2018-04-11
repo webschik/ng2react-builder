@@ -486,12 +486,51 @@ const possibleStandardNames: {[key: string]: string} = {
 };
 
 const possibleAngularNames: {[key: string]: string} = {
+    'ng-paste': 'onPaste',
+    'ng-cut': 'onCut',
+    'ng-copy': 'onCopy',
+    'ng-blur': 'onBlur',
+    'ng-focus': 'onFocus',
+    'ng-change': 'onChange',
+    'ng-submit': 'onSubmit',
     'ng-click': 'onClick',
-    'ng-class': 'className',
+    'ng-dblclick': 'onDoubleClick',
+    'ng-mousedown': 'onMouseDown',
+    'ng-mouseup': 'onMouseUp',
+    'ng-mouseover': 'onMouseOver',
+    'ng-mouseenter': 'onMouseEnter',
+    'ng-mouseleave': 'onMouseLeave',
+    'ng-mousemove': 'onMouseMove',
+    'ng-keydown': 'onKeyDown',
+    'ng-keyup': 'onKeyUp',
+    'ng-keypress': 'onKeyPress',
+    'ng-style': 'style',
     'ng-bind-html': 'dangerouslySetInnerHTML',
-    'ng-disabled': 'disabled',
-    'ng-src': 'src'
+    'ng-bind-template': 'dangerouslySetInnerHTML'
 };
+
+[
+    'href',
+    'src',
+    'srcset',
+    'disabled',
+    'checked',
+    'readonly',
+    'selected',
+    'open',
+    'value',
+    'class',
+    'required',
+    'pattern',
+    'maxlength',
+    'minlength'
+].forEach((htmlAttr: string) => {
+    const reactAttr: string = htmlAttr2React(htmlAttr);
+
+    if (reactAttr) {
+        possibleAngularNames[`ng-${ htmlAttr }`] = reactAttr;
+    }
+});
 
 export const reactInterpolation: {
     startSymbol: string;

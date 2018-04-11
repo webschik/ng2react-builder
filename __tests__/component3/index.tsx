@@ -13,10 +13,13 @@ export default class TestComponent extends React.PureComponent<{}> {
             types.map((type, index: number, list) => {
                 return [
                     <header key={`item-${index}child-2`}>Header {type}</header>,
-                    <aside key={`item-${index}child-4`} className="sidebar">
+                    <aside
+                        key={`item-${index}child-4`}
+                        className="sidebar"
+                        className={index % 2 ? 'sidebar_odd' : undefined}>
                         Sidebar
                     </aside>,
-                    <div key={`item-${index}child-6`} className="body">
+                    <div key={`item-${index}child-6`} className="body" className={index % 2 ? undefined : 'body_even'}>
                         Body {type}
                     </div>,
                     <footer key={`item-${index}child-8`}>Footer {list.length}</footer>

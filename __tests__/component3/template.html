@@ -4,10 +4,10 @@
 <header data-ng-repeat-start="type in types as list">
     Header {{ type }}
 </header>
-<aside class="sidebar">
+<aside class="sidebar" ng-class-odd="'sidebar_odd'">
     Sidebar
 </aside>
-<div class="body">
+<div class="body" ng-class-even="'body_even'">
     Body {{ type }}
 </div>
 <footer ng-repeat-end>
