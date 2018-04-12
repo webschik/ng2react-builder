@@ -252,7 +252,7 @@ export default function serialize (
                         reactAttrValue = `"${ attrValue }"`;
                     }
                 } else {
-                    reactAttrValue = interpolatedValue ? `"${ interpolatedValue }"` : '';
+                    reactAttrValue = `"${ interpolatedValue }"`;
                 }
             }
 
