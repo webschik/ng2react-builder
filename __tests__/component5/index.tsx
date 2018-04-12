@@ -17,7 +17,7 @@ export default class PhoneDetail extends React.PureComponent<{}> {
                 {$ctrl.phone.images.map((img, index: number) => {
                     return (
                         <li key={`item-${index}`}>
-                            <img src={img} onClick={$ctrl.setImage.bind(null, img)} />
+                            <img src={img} onClick={$ctrl.setImage.bind(this, img)} />
                         </li>
                     );
                 })}

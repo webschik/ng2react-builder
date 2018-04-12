@@ -229,7 +229,7 @@ export default function serialize (
                     if (isEventHandlerAttr) {
                         attrValue = attrValue
                             .replace(/\(\)/g, '')
-                            .replace(/([a-z])\(([^\)])/g, '$1.bind(null, $2');
+                            .replace(/([a-z])\(([^\)])/g, '$1.bind(this, $2');
                     }
 
                     const attrValueLastIndex: number = attrValue.length - 1;
