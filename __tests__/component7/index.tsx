@@ -1,0 +1,150 @@
+import * as React from 'react';
+
+export default class RealWorld extends React.PureComponent<{}> {
+    render() {
+        return (
+            <div>
+                <nav className="navbar navbar-light">
+                    <div className="container">
+                        <NavLink className="navbar-brand" to="app.home" ng-bind="::$ctrl.appName | lowercase" />
+
+                        {/* Show this for logged out users */}
+                        <ul show-authed="false" className="nav navbar-nav pull-xs-right">
+                            <li className="nav-item">
+                                <NavLink className="nav-link" activeClassName="active" to="app.home">
+                                    Home
+                                </NavLink>
+                            </li>
+
+                            <li className="nav-item">
+                                <NavLink className="nav-link" activeClassName="active" to="app.login">
+                                    Sign in
+                                </NavLink>
+                            </li>
+
+                            <li className="nav-item">
+                                <NavLink className="nav-link" activeClassName="active" to="app.register">
+                                    Sign up
+                                </NavLink>
+                            </li>
+                        </ul>
+
+                        {/* Show this for logged in users */}
+                        <ul show-authed="true" className="nav navbar-nav pull-xs-right">
+                            <li className="nav-item">
+                                <NavLink className="nav-link" activeClassName="active" to="app.home">
+                                    Home
+                                </NavLink>
+                            </li>
+
+                            <li className="nav-item">
+                                <NavLink className="nav-link" activeClassName="active" to="app.editor">
+                                    <i className="ion-compose" />&nbsp;New Article
+                                </NavLink>
+                            </li>
+
+                            <li className="nav-item">
+                                <NavLink className="nav-link" activeClassName="active" to="app.settings">
+                                    <i className="ion-gear-a" />&nbsp;Settings
+                                </NavLink>
+                            </li>
+
+                            <li className="nav-item">
+                                <NavLink
+                                    className="nav-link"
+                                    activeClassName="active"
+                                    to="app.profile.main({ username: $ctrl.currentUser.username})">
+                                    <img src={$ctrl.currentUser.image} className="user-pic" />
+                                    {$ctrl.currentUser.username}
+                                </NavLink>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+
+                <div className="editor-page">
+                    <div className="container page">
+                        <div className="row">
+                            <div className="col-md-10 offset-md-1 col-xs-12">
+                                <list-errors errors="$ctrl.errors" />
+
+                                <form>
+                                    <fieldset disabled="$ctrl.isSubmitting">
+                                        <fieldset className="form-group">
+                                            <input
+                                                className="form-control form-control-lg"
+                                                ng-model="$ctrl.article.title"
+                                                type="text"
+                                                placeholder="Article Title"
+                                            />
+                                        </fieldset>
+
+                                        <fieldset className="form-group">
+                                            <input
+                                                className="form-control"
+                                                ng-model="$ctrl.article.description"
+                                                type="text"
+                                                placeholder="What's this article about?"
+                                            />
+                                        </fieldset>
+
+                                        <fieldset className="form-group">
+                                            <textarea
+                                                className="form-control"
+                                                rows="8"
+                                                ng-model="$ctrl.article.body"
+                                                placeholder="Write your article (in markdown)">
+                                                {' '}
+                                            </textarea>
+                                        </fieldset>
+
+                                        <fieldset className="form-group">
+                                            <input
+                                                className="form-control"
+                                                type="text"
+                                                placeholder="Enter tags"
+                                                ng-model="$ctrl.tagField"
+                                                onKeyUp="$event.keyCode == 13 &amp;&amp; $ctrl.addTag()"
+                                            />
+
+                                            <div className="tag-list">
+                                                {$ctrl.article.tagList.map((tag, index: number) => {
+                                                    return (
+                                                        <span key={`item-${index}`} className="tag-default tag-pill">
+                                                            <i
+                                                                className="ion-close-round"
+                                                                onClick={$ctrl.removeTag.bind(this, tag)}
+                                                            />
+                                                            {tag}
+                                                        </span>
+                                                    );
+                                                })}
+                                            </div>
+                                        </fieldset>
+
+                                        <button
+                                            className="btn btn-lg pull-xs-right btn-primary"
+                                            type="button"
+                                            onClick={$ctrl.submit}>
+                                            Publish Article
+                                        </button>
+                                    </fieldset>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <footer>
+                    <div className="container">
+                        <NavLink className="logo-font" to="app.home" ng-bind="::$ctrl.appName | lowercase" />
+                        <span className="attribution">
+                            © {date($ctrl.date, 'yyyy')}. An interactive learning project from{' '}
+                            <a href="https://thinkster.io">Thinkster</a>. Code licensed under MIT.
+                        </span>
+                    </div>
+                </footer>
+            </div>
+        );
+    }
+}

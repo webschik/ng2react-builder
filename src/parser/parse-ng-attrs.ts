@@ -43,9 +43,13 @@ export default function parseNgAttrs (el: ASTElement, componentOptions: ReactCom
                 case 'ng-repeat-end':
                     el.isIteratorEnd = true;
                     break;
+                case 'ng-cloak':
+                    break;
                 default:
                     if (name.indexOf(ngAttr) === 0) {
-                        filteredAttribs[name.slice(ngAttr.length)] = value;
+                        const attrName: string = name.slice(ngAttr.length);
+
+                        filteredAttribs[htmlAttr2React(attrName) || angularAttr2React(attrName) || attrName] = value;
 
                         break;
                     }

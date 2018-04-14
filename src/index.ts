@@ -43,7 +43,16 @@ export function createReactComponent (customOptions: ReactComponentOptions): str
         }),
         react: Object.assign({
             componentType: 'pure'
-        }, customOptions.react)
+        }, customOptions.react),
+        replaceDirectives: Object.assign({
+            'ng-view': {
+                tagName: 'Switch'
+            },
+            'ui-sref': {
+                tagName: 'NavLink',
+                valueProp: 'to'
+            }
+        }, customOptions.replaceDirectives)
     });
 
     const {template, react} = options;

@@ -506,7 +506,8 @@ const possibleAngularNames: {[key: string]: string} = {
     'ng-keypress': 'onKeyPress',
     'ng-style': 'style',
     'ng-bind-html': 'dangerouslySetInnerHTML',
-    'ng-bind-template': 'dangerouslySetInnerHTML'
+    'ng-bind-template': 'dangerouslySetInnerHTML',
+    'ui-sref-active': 'activeClassName'
 };
 
 [

@@ -19,7 +19,7 @@ export default class PhoneDetail extends React.PureComponent<{}> {
                         </form>
                     </header>
                     {todos.length ? (
-                        <section className="main" ng-cloak="">
+                        <section className="main">
                             <input
                                 id="toggle-all"
                                 className="toggle-all"
@@ -61,7 +61,7 @@ export default class PhoneDetail extends React.PureComponent<{}> {
                         </section>
                     ) : null}
                     {todos.length ? (
-                        <footer className="footer" ng-cloak="">
+                        <footer className="footer">
                             <span className="todo-count">
                                 <strong>{remainingCount}</strong>
                                 <ng-pluralize count="remainingCount" when="{ one: 'item left', other: 'items left' }" />
