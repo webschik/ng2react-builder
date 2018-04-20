@@ -1,5 +1,5 @@
 import {parseFragment, treeAdapters, AST} from 'parse5';
-import {ComponentInfo, ReactComponentOptions} from '../index';
+import {ReactComponentOptions} from '../index';
 import parseNgAttrs from './parse-ng-attrs';
 import setReactTagName from './set-react-tag-name';
 import serialize from '../serializer/serialize';
@@ -26,7 +26,7 @@ export interface ASTElement extends AST.HtmlParser2.Element {
     iteratorInfo?: AngularIteratorInfo;
 }
 
-export default function parseTemplate (template: string, componentOptions: ReactComponentOptions): ComponentInfo {
+export default function parseTemplate (template: string, componentOptions: ReactComponentOptions): string {
     const treeAdapter: AST.TreeAdapter = Object.assign({}, defaultTreeAdapter, {
         createElement (tagName: string, namespaceURI: string, attrs: AST.Default.Attribute[]) {
             const el: ASTElement = createElement.call(this, tagName, namespaceURI, attrs);
@@ -47,15 +47,11 @@ export default function parseTemplate (template: string, componentOptions: React
         treeAdapter
     }) as AST.HtmlParser2.DocumentFragment;
 
-    const output: string = serialize(fragment, {
+    return serialize(fragment, {
         treeAdapter: Object.assign({}, treeAdapter, {
             getTagName (node: ASTElement) {
                 return node.reactTagName || node.name;
             }
         })
     }, componentOptions);
-
-    return {
-        template: output
-    };
 }

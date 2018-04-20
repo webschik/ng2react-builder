@@ -1,10 +1,6 @@
 import * as prettier from 'prettier';
 import parseTemplate from './parser/parse-template';
 
-export interface ComponentInfo {
-    template: string;
-}
-
 export interface DirectiveReplaceInfo {
     tagName: string;
     valueProp?: string;
@@ -16,8 +12,13 @@ export interface AngularInterpolateOptions {
     bindOnce: string;
 }
 
+export interface AngularControllerOptions {
+    name: string;
+}
+
 export interface ReactComponentOptions {
     template?: string;
+    controller?: AngularControllerOptions;
     replaceDirectives?: {
         [key: string]: DirectiveReplaceInfo;
     };
@@ -55,33 +56,37 @@ export function createReactComponent (customOptions: ReactComponentOptions): str
         }, customOptions.replaceDirectives)
     });
 
-    const {template, react} = options;
+    const {template, react, controller} = options;
     const {typescript, componentType, componentName} = react;
-    let componentInfo: ComponentInfo;
+    let jsxResult: string = 'null';
+    let componentCode: string;
 
     if (template) {
-        componentInfo = parseTemplate(template, options);
+        jsxResult = parseTemplate(template, options);
     }
 
-    const componentRenderResult: string = componentInfo && componentInfo.template || 'null';
+    if (controller) {
 
-    return prettier.format(`
-        ${ typescript ? 'import * as React from \'react\';' : 'import React from \'react\';'}
+    } else {
+        componentCode = `
+            ${ typescript ? 'import * as React from \'react\';' : 'import React from \'react\';'}
 
-        ${ componentType === 'stateless' ? (
-            `const ${ componentName }${ typescript ? ': React.StatelessComponent<{}>' : ''} = (props) => {
-                return ${ componentRenderResult };
-            };
-
-            export default ${ componentName };
-        `) : (`
-            export default class ${ componentName } extends React.PureComponent${ typescript ? '<{}>' : ''} {
-                render () {
-                    return ${ componentRenderResult };
+            ${ componentType === 'stateless' ? (
+                `const ${ componentName }${ typescript ? ': React.StatelessComponent<{}>' : ''} = (props) => {
+                    return ${ jsxResult };
+                };
+                export default ${ componentName };
+            `) : (`
+                export default class ${ componentName } extends React.PureComponent${ typescript ? '<{}>' : ''} {
+                    render () {
+                        return ${ jsxResult };
+                    }
                 }
-            }
-        `)}
-    `, Object.assign({
+            `)}
+        `;
+    }
+
+    return prettier.format(componentCode, Object.assign({
         printWidth: 120,
         tabWidth: 4,
         useTabs: false,

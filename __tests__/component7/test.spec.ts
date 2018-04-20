@@ -18,6 +18,9 @@ describe('createReactComponent()', () => {
             return getSources('./template.html', './index.tsx').then(([template, expectedCode]: string[]) => {
                 const generatedCode: string = createReactComponent({
                     template,
+                    controller: {
+                        name: 'ArticleCtrl'
+                    },
                     react: {
                         typescript: true,
                         componentName: 'RealWorld'
