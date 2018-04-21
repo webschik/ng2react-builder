@@ -1,4 +1,5 @@
 import * as prettier from 'prettier';
+import parseController from './parser/parse-controller';
 import parseTemplate from './parser/parse-template';
 
 export interface DirectiveReplaceInfo {
@@ -14,6 +15,7 @@ export interface AngularInterpolateOptions {
 
 export interface AngularControllerOptions {
     name: string;
+    code: string;
 }
 
 export interface ReactComponentOptions {
@@ -66,7 +68,7 @@ export function createReactComponent (customOptions: ReactComponentOptions): str
     }
 
     if (controller) {
-
+        componentCode = parseController(controller, jsxResult, options);
     } else {
         componentCode = `
             ${ typescript ? 'import * as React from \'react\';' : 'import React from \'react\';'}

@@ -1,7 +1,7 @@
 {
   "name": "ng2react-builder",
   "description": "Angular1 -> React.js transpiler",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -24,9 +24,13 @@
   "dependencies": {
     "angular": "^1.6.9",
     "parse5": "^4.0.0",
-    "prettier": "^1.11.1"
+    "prettier": "^1.11.1",
+    "@babel/generator": "^7.0.0-beta.44",
+    "@babel/traverse": "^7.0.0-beta.44",
+    "babylon": "^6.18.0"
   },
   "devDependencies": {
+    "@types/babylon": "^6.16.2",
     "@types/jest": "^22.2.2",
     "@types/node": "^9.6.1",
     "@types/prettier": "^1.10.0",
@@ -59,14 +63,14 @@
       "src/*.{ts,tsx}",
       "src/**/*.{ts,tsx}"
     ],
-    "testRegex": "(/__tests__/.*|\\.(spec))\\.(ts|js)$",
+    "testRegex": "(/__tests__/component7/.*|\\.(spec))\\.(ts)$",
     "transform": {
       ".*": "<rootDir>/jest/preprocessor.js"
     },
     "setupTestFrameworkScriptFile": "<rootDir>/jest/config.js",
     "testPathIgnorePatterns": [
       "/node_modules/",
-      "/test/e2e/"
+      "/__tests__/component7/controller.js"
     ],
     "moduleFileExtensions": [
       "ts",

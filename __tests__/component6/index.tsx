@@ -64,7 +64,7 @@ export default class PhoneDetail extends React.PureComponent<{}> {
                         <footer className="footer">
                             <span className="todo-count">
                                 <strong>{remainingCount}</strong>
-                                <ng-pluralize count="remainingCount" when="{ one: 'item left', other: 'items left' }" />
+                                <NgPluralize count="remainingCount" when="{ one: 'item left', other: 'items left' }" />
                             </span>
                             <ul className="filters">
                                 <li>

@@ -16,7 +16,7 @@ interface ASTSerializer {
     [key: string]: any;
 }
 
-export default function serialize (
+export default function serializeTemplate (
     fragment: AST.HtmlParser2.DocumentFragment,
     serializerOptions: {treeAdapter: AST.TreeAdapter},
     componentOptions: ReactComponentOptions

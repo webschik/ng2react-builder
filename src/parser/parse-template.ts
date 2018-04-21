@@ -2,7 +2,7 @@ import {parseFragment, treeAdapters, AST} from 'parse5';
 import {ReactComponentOptions} from '../index';
 import parseNgAttrs from './parse-ng-attrs';
 import setReactTagName from './set-react-tag-name';
-import serialize from '../serializer/serialize';
+import serializeTemplate from '../serializer/serialize-template';
 
 const defaultTreeAdapter: AST.TreeAdapter = treeAdapters.htmlparser2;
 const {createElement, adoptAttributes} = defaultTreeAdapter;
@@ -47,10 +47,21 @@ export default function parseTemplate (template: string, componentOptions: React
         treeAdapter
     }) as AST.HtmlParser2.DocumentFragment;
 
-    return serialize(fragment, {
+    return serializeTemplate(fragment, {
         treeAdapter: Object.assign({}, treeAdapter, {
-            getTagName (node: ASTElement) {
-                return node.reactTagName || node.name;
+            getTagName ({reactTagName, name}: ASTElement) {
+                if (reactTagName) {
+                    return reactTagName;
+                }
+
+                // It's a custom tag. Transform <my-custom-component /> to <MyCustomComponent />
+                if (name.includes('-')) {
+                    return name[0].toUpperCase() + name.slice(1).replace(/-([^\-])/g, (_: string, ch: string) => {
+                        return ch.toUpperCase();
+                    });
+                }
+
+                return name;
             }
         })
     }, componentOptions);

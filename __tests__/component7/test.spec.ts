@@ -1,25 +1,19 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import {promisify} from 'util';
 import {createReactComponent} from '../../src/index';
-
-const readFile = promisify(fs.readFile);
+import readFiles from '../read-files';
 
 describe('createReactComponent()', () => {
-    function getSources (path1: string, path2: string): Promise<[string, string]> {
-        return Promise.all([
-            readFile(path.resolve(__dirname, path1), 'utf8'),
-            readFile(path.resolve(__dirname, path2), 'utf8')
-        ]);
-    }
-
     describe('component7', () => {
         it('should generate TSX component', () => {
-            return getSources('./template.html', './index.tsx').then(([template, expectedCode]: string[]) => {
+            return readFiles(
+                './component7/template.html',
+                './component7/controller.js',
+                './component7/index.tsx'
+            ).then(([template, controllerCode, expectedCode]: string[]) => {
                 const generatedCode: string = createReactComponent({
                     template,
                     controller: {
-                        name: 'ArticleCtrl'
+                        name: 'ArticleCtrl',
+                        code: controllerCode
                     },
                     react: {
                         typescript: true,
