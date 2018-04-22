@@ -1,23 +1,27 @@
-import {createReactComponent} from '../../src/index';
+import {transform} from '../../src/index';
 import readFiles from '../read-files';
 
-describe('createReactComponent()', () => {
+describe('transform()', () => {
     describe('component2', () => {
         it('should generate TSX component', () => {
             return readFiles(
                 './component2/template.html',
                 './component2/index.tsx'
             ).then(([template, expectedCode]: string[]) => {
-                const generatedCode: string = createReactComponent({
-                    template,
+                const generatedCode: string[] = transform({
                     react: {
-                        typescript: true,
-                        componentName: 'Icon',
-                        componentType: 'stateless'
-                    }
+                        typescript: true
+                    },
+                    components: [
+                        {
+                            template,
+                            componentName: 'Icon',
+                            componentType: 'stateless'
+                        }
+                    ]
                 });
 
-                expect(generatedCode).toBe(expectedCode);
+                expect(generatedCode).toEqual([expectedCode]);
             });
         });
     });

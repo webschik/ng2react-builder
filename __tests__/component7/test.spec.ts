@@ -1,7 +1,7 @@
-import {createReactComponent} from '../../src/index';
+import {transform} from '../../src/index';
 import readFiles from '../read-files';
 
-describe('createReactComponent()', () => {
+describe('transform()', () => {
     describe('component7', () => {
         it('should generate TSX component', () => {
             return readFiles(
@@ -9,19 +9,23 @@ describe('createReactComponent()', () => {
                 './component7/controller.js',
                 './component7/index.tsx'
             ).then(([template, controllerCode, expectedCode]: string[]) => {
-                const generatedCode: string = createReactComponent({
-                    template,
-                    controller: {
-                        name: 'ArticleCtrl',
-                        code: controllerCode
-                    },
+                const generatedCode: string[] = transform({
                     react: {
-                        typescript: true,
-                        componentName: 'RealWorld'
-                    }
+                        typescript: true
+                    },
+                    components: [
+                        {
+                            template,
+                            controller: {
+                                name: 'ArticleCtrl',
+                                code: controllerCode
+                            },
+                            componentName: 'RealWorld'
+                        }
+                    ]
                 });
 
-                expect(generatedCode).toBe(expectedCode);
+                expect(generatedCode).toEqual([expectedCode]);
             });
         });
     });

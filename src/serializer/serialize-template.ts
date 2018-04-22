@@ -1,6 +1,6 @@
 import {AST} from 'parse5/lib';
 import {AngularLexer, AngularParser, Angular, initAngular} from '../angular';
-import {AngularInterpolateOptions, ReactComponentOptions} from '../index';
+import {AngularInterpolateOptions, TransformOptions} from '../index';
 import {ASTElement} from '../parser/parse-template';
 import {htmlAttr2React, reactInterpolation} from '../react';
 import cleanNgAttrExpression from './clean-ng-attr-expression';
@@ -19,9 +19,9 @@ interface ASTSerializer {
 export default function serializeTemplate (
     fragment: AST.HtmlParser2.DocumentFragment,
     serializerOptions: {treeAdapter: AST.TreeAdapter},
-    componentOptions: ReactComponentOptions
+    transformOptions: TransformOptions
 ): string {
-    const {react} = componentOptions;
+    const {react} = transformOptions;
     const serializer: ASTSerializer = new Serializer(fragment, serializerOptions);
     const lexer: AngularLexer = new angular.Lexer({
         csp: false,
@@ -36,7 +36,7 @@ export default function serializeTemplate (
         }
     });
     const ngInterpolateOptions: AngularInterpolateOptions =
-        componentOptions.angular.interpolate as AngularInterpolateOptions;
+        transformOptions.angular.interpolate as AngularInterpolateOptions;
 
     if (hasMultipleSiblingElements(fragment.firstChild)) {
         (fragment as any).openedElementGroupsCount = 1;
@@ -219,7 +219,7 @@ export default function serializeTemplate (
             } else {
                 const interpolatedValue: string =
                     reactAttrValue &&
-                    interpolate(ngParser, reactAttrValue, componentOptions);
+                    interpolate(ngParser, reactAttrValue, transformOptions);
                 const isEventHandlerAttr: boolean = /^on[A-Z][a-z]{3,}/.test(attrName);
 
                 // has interpolation or event handler
@@ -276,7 +276,7 @@ export default function serializeTemplate (
         } else {
             const escapedContent: string = Serializer.escapeString(content, false);
 
-            this.html += escapedContent && interpolate(ngParser, escapedContent, componentOptions) || '';
+            this.html += escapedContent && interpolate(ngParser, escapedContent, transformOptions) || '';
         }
     };
 

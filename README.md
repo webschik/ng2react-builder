@@ -20,72 +20,9 @@ npm i -D ng2react-builder
 
 ### via API
 ```js
-import {createReactComponent} from 'ng2react-builder';
+import {transform} from 'ng2react-builder';
 
-createReactComponent({
-    template: `
-        <div ng-app="todomvc">
-            <ng-view></ng-view>
-            <section class="todoapp">
-                <header class="header">
-                    <h1>todos</h1>
-                    <form class="todo-form" ng-submit="addTodo()">
-                        <input class="new-todo" placeholder="What needs to be done?" ng-model="newTodo" ng-disabled="saving"                                  autofocus>
-                    </form>
-                </header>
-                <section class="main" ng-show="todos.length" ng-cloak>
-                    <input id="toggle-all" class="toggle-all" type="checkbox" ng-model="allChecked"
-                            ng-click="markAll(allChecked)">
-                    <label for="toggle-all">Mark all as complete</label>
-                    <ul class="todo-list">
-                        <li ng-repeat="todo in todos | filter:statusFilter track by $index" ng-class="{completed: 
-                            todo.completed, editing: todo == editedTodo}">
-                            <div class="view">
-                                <input class="toggle" type="checkbox" ng-model="todo.completed"
-                                       ng-change="toggleCompleted(todo)">
-                                <label ng-dblclick="editTodo(todo)">{{todo.title}}</label>
-                                <button class="destroy" ng-click="removeTodo(todo)"></button>
-                            </div>
-                            <form ng-submit="saveEdits(todo, 'submit')">
-                                <input class="edit" ng-trim="false" ng-model="todo.title" todo-escape="revertEdits(todo)"
-                                       ng-blur="saveEdits(todo, 'blur')" todo-focus="todo == editedTodo">
-                            </form>
-                        </li>
-                    </ul>
-                </section>
-                <footer class="footer" ng-show="todos.length" ng-cloak>
-                            <span class="todo-count"><strong>{{remainingCount}}</strong>
-                                <ng-pluralize count="remainingCount" when="{ one: 'item left', other: 'items left' }">
-                                </ng-pluralize>
-                            </span>
-                    <ul class="filters">
-                        <li>
-                            <a ng-class="{selected: status == ''} " href="#/">All</a>
-                        </li>
-                        <li>
-                            <a ng-class="{selected: status == 'active'}" href="#/active">Active</a>
-                        </li>
-                        <li>
-                            <a ng-class="{selected: status == 'completed'}" href="#/completed">Completed</a>
-                        </li>
-                    </ul>
-                    <button class="clear-completed" ng-click="clearCompletedTodos()" ng-show="completedCount">
-                        Clear completed
-                    </button>
-                </footer>
-            </section>
-            <footer class="info">
-                <p>Double-click to edit a todo</p>
-                <p>Credits:
-                    <a href="http://twitter.com/cburgdorf">Christoph Burgdorf</a>,
-                    <a href="http://ericbidelman.com">Eric Bidelman</a>,
-                    <a href="http://jacobmumm.com">Jacob Mumm</a> and
-                    <a href="http://blog.igorminar.com">Igor Minar</a>
-                </p>
-                <p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
-            </footer>
-        </div>
-    `,
+transform({
     replaceDirectives: {
         'my-icon': {
             tagName: 'MyReactIcon',
@@ -93,12 +30,80 @@ createReactComponent({
         }
     },
     react: {
-        typescript: true,
-        componentType: 'stateless',
-        componentName: 'TestComponent'
-    }
+        typescript: true
+    },
+    components: [
+        {
+            componentType: 'stateless',
+            componentName: 'TestComponent',
+            template: `
+                <div ng-app="todomvc">
+                    <ng-view></ng-view>
+                    <section class="todoapp">
+                        <header class="header">
+                            <h1>todos</h1>
+                            <form class="todo-form" ng-submit="addTodo()">
+                                <input class="new-todo" placeholder="What needs to be done?" ng-model="newTodo" ng-disabled="saving"                                  autofocus>
+                            </form>
+                        </header>
+                        <section class="main" ng-show="todos.length" ng-cloak>
+                            <input id="toggle-all" class="toggle-all" type="checkbox" ng-model="allChecked"
+                                    ng-click="markAll(allChecked)">
+                            <label for="toggle-all">Mark all as complete</label>
+                            <ul class="todo-list">
+                                <li ng-repeat="todo in todos | filter:statusFilter track by $index" ng-class="{completed: 
+                                    todo.completed, editing: todo == editedTodo}">
+                                    <div class="view">
+                                        <input class="toggle" type="checkbox" ng-model="todo.completed"
+                                               ng-change="toggleCompleted(todo)">
+                                        <label ng-dblclick="editTodo(todo)">{{todo.title}}</label>
+                                        <button class="destroy" ng-click="removeTodo(todo)"></button>
+                                    </div>
+                                    <form ng-submit="saveEdits(todo, 'submit')">
+                                        <input class="edit" ng-trim="false" ng-model="todo.title" todo-escape="revertEdits(todo)"
+                                               ng-blur="saveEdits(todo, 'blur')" todo-focus="todo == editedTodo">
+                                    </form>
+                                </li>
+                            </ul>
+                        </section>
+                        <footer class="footer" ng-show="todos.length" ng-cloak>
+                                    <span class="todo-count"><strong>{{remainingCount}}</strong>
+                                        <ng-pluralize count="remainingCount" when="{ one: 'item left', other: 'items left' }">
+                                        </ng-pluralize>
+                                    </span>
+                            <ul class="filters">
+                                <li>
+                                    <a ng-class="{selected: status == ''} " href="#/">All</a>
+                                </li>
+                                <li>
+                                    <a ng-class="{selected: status == 'active'}" href="#/active">Active</a>
+                                </li>
+                                <li>
+                                    <a ng-class="{selected: status == 'completed'}" href="#/completed">Completed</a>
+                                </li>
+                            </ul>
+                            <button class="clear-completed" ng-click="clearCompletedTodos()" ng-show="completedCount">
+                                Clear completed
+                            </button>
+                        </footer>
+                    </section>
+                    <footer class="info">
+                        <p>Double-click to edit a todo</p>
+                        <p>Credits:
+                            <a href="http://twitter.com/cburgdorf">Christoph Burgdorf</a>,
+                            <a href="http://ericbidelman.com">Eric Bidelman</a>,
+                            <a href="http://jacobmumm.com">Jacob Mumm</a> and
+                            <a href="http://blog.igorminar.com">Igor Minar</a>
+                        </p>
+                        <p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
+                    </footer>
+                </div>
+            `   
+        }
+    ]
 });
 /*
+[`
 import * as React from 'react';
 
 export default class PhoneDetail extends React.PureComponent<{}> {
@@ -209,15 +214,17 @@ export default class PhoneDetail extends React.PureComponent<{}> {
         );
     }
 }
+`]
 */
 
 ```
 
-Method `createReactComponent` takes the next options:
-* `template` **[required]** - string with Angular template
-* `react` **[required]** - React component options
-* `react.componentName` **[required]** - React component name
-* `react.typescript` **[optional]** - output should be in Typescript. Default is **false**
-* `react.componentType` **[optional]** - 'pure', 'stateless', 'stateful'.  Default is **pure**
+Method `transform` takes the next options:
+* `components` **[required]** - list of components options
+* `components[i].componentName` **[required]** - React component name
+* `components[i].template` **[optional]** - string with Angular template
+* `components[i].componentType` **[optional]** - 'pure', 'stateless', 'stateful'.  Default is **pure**
 * `replaceDirectives` **[optional]** - directives that you want to replace. It support tag names and attributes
-* `prettier` **[optional]** - [Prettier config](https://prettier.io/docs/en/options.html)
+* `react` **[optional]** - React component options
+* `react.typescript` **[optional]** - output should be in Typescript. Default is **false**
+* `react.prettier` **[optional]** - [Prettier config](https://prettier.io/docs/en/options.html)

@@ -1,8 +1,8 @@
-import {DirectiveReplaceInfo, ReactComponentOptions} from '../index';
+import {DirectiveReplaceInfo, TransformOptions} from '../index';
 import {ASTElement} from './parse-template';
 import searchNgAttr from './search-ng-attr';
 
-export default function setReactTagName (el: ASTElement, {replaceDirectives}: ReactComponentOptions) {
+export default function setReactTagName (el: ASTElement, {replaceDirectives}: TransformOptions) {
     const {attribs, name} = el;
 
     if (attribs && replaceDirectives) {

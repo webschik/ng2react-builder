@@ -1,31 +1,55 @@
-import {ClassDeclaration} from 'babel-types';
 import * as types from 'babel-types';
 import * as babylon from 'babylon';
-import {AngularControllerOptions, ReactComponentOptions} from '../index';
+import {ComponentOptions, TransformOptions} from '../index';
 
 const traverse = require('@babel/traverse').default;
 const generate = require('@babel/generator').default;
+const jsxResultKeyword: string = 'JSX_RESULT';
+const jsxResultKeywordPattern: RegExp = new RegExp(`"${ jsxResultKeyword }";`, 'g');
+
+interface NodePath {
+    node: types.Node;
+    scope: {
+        rename (from: string, to: string): void;
+    };
+    get (name: string): any;
+}
+
+interface ClassDeclarationPath extends NodePath {
+    node: types.ClassDeclaration;
+}
 
 export default function parseController (
-    controller: AngularControllerOptions,
+    componentOptions: ComponentOptions,
     jsxResult: string,
-    componentOptions: ReactComponentOptions
+    transformOptions: TransformOptions
 ): string {
+    const {controller, componentName} = componentOptions;
     const controllerName: string = controller.name;
     const ast: types.File = babylon.parse(controller.code, {
         sourceType: 'module'
     });
 
     traverse(ast, {
-        enter (path: object) {
-            if (types.isClassDeclaration(path) && path.id && path.id.name === controllerName) {
-                const {body} = path as ClassDeclaration;
+        Program (path: NodePath) {
+            path.scope.rename(controllerName, componentName);
+        },
 
-                debugger;
+        ClassDeclaration (path: ClassDeclarationPath) {
+            const {node} = path;
+
+            if (node.id && node.id.name === componentName) {
+                path.get('body').pushContainer(
+                    'body',
+                    types.expressionStatement(types.stringLiteral(jsxResultKeyword))
+                );
             }
         }
     });
 
-    // return generate(ast);
-    return '';
+    return generate(ast).code.replace(jsxResultKeywordPattern, `
+        render () {
+            return ${ jsxResult };
+        }
+    `);
 }

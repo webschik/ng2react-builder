@@ -18,15 +18,19 @@ export interface AngularControllerOptions {
     code: string;
 }
 
-export interface ReactComponentOptions {
+export interface ComponentOptions {
+    componentName: string;
+    componentType?: 'stateless' | 'stateful' | 'pure';
     template?: string;
     controller?: AngularControllerOptions;
+}
+
+export interface TransformOptions {
+    components: ComponentOptions[];
     replaceDirectives?: {
         [key: string]: DirectiveReplaceInfo;
     };
-    react: {
-        componentName: string;
-        componentType?: 'stateless' | 'stateful' | 'pure';
+    react?: {
         typescript?: boolean;
         prettier?: prettier.Options;
     };
@@ -35,18 +39,15 @@ export interface ReactComponentOptions {
     };
 }
 
-export function createReactComponent (customOptions: ReactComponentOptions): string {
-    const options: ReactComponentOptions = Object.assign({}, customOptions, {
-        angular: Object.assign({}, customOptions.angular, {
+export function transform (options: TransformOptions): string[] {
+    const transformOptions: TransformOptions = Object.assign({}, options, {
+        angular: Object.assign({}, options.angular, {
             interpolate: Object.assign({
                 startSymbol: '{{',
                 endSymbol: '}}',
                 bindOnce: '::'
-            }, customOptions.angular && customOptions.angular.interpolate)
+            }, options.angular && options.angular.interpolate)
         }),
-        react: Object.assign({
-            componentType: 'pure'
-        }, customOptions.react),
         replaceDirectives: Object.assign({
             'ng-view': {
                 tagName: 'Switch'
@@ -55,49 +56,54 @@ export function createReactComponent (customOptions: ReactComponentOptions): str
                 tagName: 'NavLink',
                 valueProp: 'to'
             }
-        }, customOptions.replaceDirectives)
+        }, options.replaceDirectives)
     });
+    const {typescript = false} = transformOptions.react || {};
 
-    const {template, react, controller} = options;
-    const {typescript, componentType, componentName} = react;
-    let jsxResult: string = 'null';
-    let componentCode: string;
+    return transformOptions.components.map((componentOptions: ComponentOptions) => {
+        const {template, controller, componentName, componentType = 'pure'} = componentOptions;
 
-    if (template) {
-        jsxResult = parseTemplate(template, options);
-    }
+        let jsxResult: string = 'null';
+        let componentCode: string;
 
-    if (controller) {
-        componentCode = parseController(controller, jsxResult, options);
-    } else {
-        componentCode = `
+        if (template) {
+            jsxResult = parseTemplate(template, transformOptions);
+        }
+
+        if (controller) {
+            componentCode = parseController(componentOptions, jsxResult, transformOptions);
+        } else {
+            componentCode = `
+                ${ componentType === 'stateless' ? (
+                    `const ${ componentName }${ typescript ? ': React.StatelessComponent<{}>' : ''} = (props) => {
+                        return ${ jsxResult };
+                    };
+                    export default ${ componentName };
+                `) : (`
+                    export default class ${ componentName } extends React.PureComponent${ typescript ? '<{}>' : ''} {
+                        render () {
+                            return ${ jsxResult };
+                        }
+                    }
+                `)}
+            `;
+        }
+
+        return prettier.format(`
             ${ typescript ? 'import * as React from \'react\';' : 'import React from \'react\';'}
 
-            ${ componentType === 'stateless' ? (
-                `const ${ componentName }${ typescript ? ': React.StatelessComponent<{}>' : ''} = (props) => {
-                    return ${ jsxResult };
-                };
-                export default ${ componentName };
-            `) : (`
-                export default class ${ componentName } extends React.PureComponent${ typescript ? '<{}>' : ''} {
-                    render () {
-                        return ${ jsxResult };
-                    }
-                }
-            `)}
-        `;
-    }
-
-    return prettier.format(componentCode, Object.assign({
-        printWidth: 120,
-        tabWidth: 4,
-        useTabs: false,
-        semi: true,
-        singleQuote: true,
-        trailingComma: 'none',
-        bracketSpacing: false,
-        jsxBracketSameLine: true,
-        arrowParens: 'always',
-        parser: typescript ? 'typescript' : 'babylon'
-    }, react.prettier));
+            ${ componentCode }
+            `, Object.assign({
+            printWidth: 120,
+            tabWidth: 4,
+            useTabs: false,
+            semi: true,
+            singleQuote: true,
+            trailingComma: 'none',
+            bracketSpacing: false,
+            jsxBracketSameLine: true,
+            arrowParens: 'always',
+            parser: typescript ? 'typescript' : 'babylon'
+        }, transformOptions.react && transformOptions.react.prettier));
+    });
 }
