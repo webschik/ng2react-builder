@@ -1,6 +1,7 @@
 import * as prettier from 'prettier';
 import parseController from './parser/parse-controller';
 import parseTemplate from './parser/parse-template';
+import {pureComponentType, ReactComponentType} from './react';
 
 export interface DirectiveReplaceInfo {
     tagName: string;
@@ -20,7 +21,7 @@ export interface AngularControllerOptions {
 
 export interface ComponentOptions {
     componentName: string;
-    componentType?: 'stateless' | 'stateful' | 'pure';
+    componentType?: ReactComponentType;
     template?: string;
     controller?: AngularControllerOptions;
 }
@@ -39,7 +40,11 @@ export interface TransformOptions {
     };
 }
 
-export function transform (options: TransformOptions): string[] {
+export interface GeneratedComponent {
+    code: string;
+}
+
+export function transform (options: TransformOptions): GeneratedComponent[] {
     const transformOptions: TransformOptions = Object.assign({}, options, {
         angular: Object.assign({}, options.angular, {
             interpolate: Object.assign({
@@ -48,6 +53,9 @@ export function transform (options: TransformOptions): string[] {
                 bindOnce: '::'
             }, options.angular && options.angular.interpolate)
         }),
+        react: Object.assign({
+            typescript: false
+        }, options.react),
         replaceDirectives: Object.assign({
             'ng-view': {
                 tagName: 'Switch'
@@ -58,11 +66,10 @@ export function transform (options: TransformOptions): string[] {
             }
         }, options.replaceDirectives)
     });
-    const {typescript = false} = transformOptions.react || {};
+    const {typescript} = transformOptions.react;
 
     return transformOptions.components.map((componentOptions: ComponentOptions) => {
-        const {template, controller, componentName, componentType = 'pure'} = componentOptions;
-
+        const {template, controller, componentName, componentType = pureComponentType} = componentOptions;
         let jsxResult: string = 'null';
         let componentCode: string;
 
@@ -89,9 +96,8 @@ export function transform (options: TransformOptions): string[] {
             `;
         }
 
-        return prettier.format(`
+        const code: string = prettier.format(`
             ${ typescript ? 'import * as React from \'react\';' : 'import React from \'react\';'}
-
             ${ componentCode }
             `, Object.assign({
             printWidth: 120,
@@ -105,5 +111,9 @@ export function transform (options: TransformOptions): string[] {
             arrowParens: 'always',
             parser: typescript ? 'typescript' : 'babylon'
         }, transformOptions.react && transformOptions.react.prettier));
+
+        return {
+            code
+        };
     });
 }

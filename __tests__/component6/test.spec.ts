@@ -1,4 +1,4 @@
-import {transform} from '../../src/index';
+import {transform, GeneratedComponent} from '../../src/index';
 import readFiles from '../read-files';
 
 describe('transform()', () => {
@@ -7,8 +7,8 @@ describe('transform()', () => {
             return readFiles(
                 './component6/template.html',
                 './component6/index.tsx'
-            ).then(([template, expectedCode]: string[]) => {
-                const generatedCode: string[] = transform({
+            ).then(([template, componentCode]: string[]) => {
+                const generatedComponents: GeneratedComponent[] = transform({
                     react: {
                         typescript: true
                     },
@@ -25,7 +25,7 @@ describe('transform()', () => {
                     ]
                 });
 
-                expect(generatedCode).toEqual([expectedCode]);
+                expect(generatedComponents).toEqual([{code: componentCode}]);
             });
         });
     });

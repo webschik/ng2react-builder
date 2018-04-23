@@ -103,7 +103,8 @@ transform({
     ]
 });
 /*
-[`
+[{
+code: `
 import * as React from 'react';
 
 export default class PhoneDetail extends React.PureComponent<{}> {
@@ -138,7 +139,7 @@ export default class PhoneDetail extends React.PureComponent<{}> {
                                 {todos.filter(statusFilter).map((todo, index: number) => {
                                     return (
                                         <li
-                                            key={`item-${index}`}
+                                            key={\`item-${index}\`}
                                             className="{completed: todo.completed, editing: todo == editedTodo}">
                                             <div className="view">
                                                 <input
@@ -214,7 +215,8 @@ export default class PhoneDetail extends React.PureComponent<{}> {
         );
     }
 }
-`]
+`
+}]
 */
 
 ```

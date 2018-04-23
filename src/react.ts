@@ -533,6 +533,12 @@ const possibleAngularNames: {[key: string]: string} = {
     }
 });
 
+export type ReactComponentType = 'stateless'|'stateful'|'pure';
+
+export const statelessComponentType: ReactComponentType = 'stateless';
+export const statefulComponentType: ReactComponentType = 'stateful';
+export const pureComponentType: ReactComponentType = 'pure';
+
 export const reactInterpolation: {
     startSymbol: string;
     endSymbol: string;

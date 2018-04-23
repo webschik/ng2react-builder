@@ -1,12 +1,16 @@
 import * as React from 'react';
 import marked from 'marked';
 
-export interface RealWorldProps {
+export interface RealWorldComponentProps {
     [key: string]: any;
 }
 
-class RealWorld extends React.PureComponent<RealWorldProps> {
-    constructor(props: RealWorldProps, context?: any, article, User, Comments, $sce, $rootScope) {
+export interface RealWorldComponentState {
+    [key: string]: any;
+}
+
+class RealWorldComponent extends React.PureComponent<RealWorldComponentProps, RealWorldComponentState> {
+    constructor(props: RealWorldComponentProps, context?: any, article, User, Comments, $sce, $rootScope) {
         super(props, context);
 
         this.article = article;
@@ -49,11 +53,9 @@ class RealWorld extends React.PureComponent<RealWorldProps> {
     }
 
     deleteComment(commentId, index) {
-        this._Comments.destroy(commentId, this.article.slug).then(
-            (success) => {
-                this.comments.splice(index, 1);
-            }
-        );
+        this._Comments.destroy(commentId, this.article.slug).then((success) => {
+            this.comments.splice(index, 1);
+        });
     }
 
     render() {
@@ -204,4 +206,4 @@ class RealWorld extends React.PureComponent<RealWorldProps> {
     }
 }
 
-export default RealWorld;
+export default RealWorldComponent;
