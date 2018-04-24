@@ -1,6 +1,6 @@
 import * as prettier from 'prettier';
-import parseController from './parser/parse-controller';
-import parseTemplate from './parser/parse-template';
+import transformController from './transformer/transform-controller';
+import transformTemplate from './transformer/transform-template';
 import {pureComponentType, ReactComponentType} from './react';
 
 export interface DirectiveReplaceInfo {
@@ -78,11 +78,11 @@ export function transform (options: TransformOptions): GeneratedComponent[] {
         let componentCode: string;
 
         if (template) {
-            jsxResult = parseTemplate(template, transformOptions);
+            jsxResult = transformTemplate(template, transformOptions);
         }
 
         if (controller) {
-            componentCode = parseController(componentOptions, jsxResult, transformOptions);
+            componentCode = transformController(componentOptions, jsxResult, transformOptions);
         } else {
             componentCode = `
                 ${ componentType === 'stateless' ? (

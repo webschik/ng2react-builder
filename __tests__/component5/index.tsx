@@ -1,6 +1,14 @@
 import * as React from 'react';
 
-export default class PhoneDetail extends React.PureComponent<{}> {
+export interface PhoneDetailProps {
+    [key: string]: any;
+}
+
+export interface PhoneDetailState {
+    [key: string]: any;
+}
+
+export default class PhoneDetail extends React.PureComponent<PhoneDetailProps, PhoneDetailState> {
     render() {
         return [
             <div key="child-0" className="phone-images">

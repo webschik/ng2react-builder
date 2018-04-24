@@ -1,4 +1,4 @@
-import {AngularIteratorInfo} from './parse-template';
+import {AngularIteratorInfo} from '../transformer/transform-template';
 
 const pattern: RegExp = /^\s*([\s\S]+?)\s+in\s+([\s\S]+?)(?:\s+as\s+([\s\S]+?))?(?:\s+track\s+by\s+([\s\S]+?))?\s*$/;
 const iteratorExpPattern: RegExp = /^(?:(\s*[\$\w]+)|\(\s*([\$\w]+)\s*,\s*([\$\w]+)\s*\))$/;

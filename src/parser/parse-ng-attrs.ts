@@ -2,7 +2,7 @@ import {AngularInterpolateOptions, DirectiveReplaceInfo, TransformOptions} from 
 import {angularAttr2React, htmlAttr2React} from '../react';
 import cleanNgAttrExpression from '../serializer/clean-ng-attr-expression';
 import parseNgIterator from './parse-ng-iterator';
-import {ASTElement} from './parse-template';
+import {ASTElement} from '../transformer/transform-template';
 import searchNgAttr from './search-ng-attr';
 
 const ngAttr: string = 'ng-attr-';

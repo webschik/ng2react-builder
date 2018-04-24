@@ -1,7 +1,7 @@
 import {AST} from 'parse5/lib';
 import {AngularLexer, AngularParser, Angular, initAngular} from '../angular';
 import {AngularInterpolateOptions, TransformOptions} from '../index';
-import {ASTElement} from '../parser/parse-template';
+import {ASTElement} from '../transformer/transform-template';
 import {htmlAttr2React, reactInterpolation} from '../react';
 import cleanNgAttrExpression from './clean-ng-attr-expression';
 import hasMultipleSiblingElements from '../parser/has-multiple-sibling-elements';

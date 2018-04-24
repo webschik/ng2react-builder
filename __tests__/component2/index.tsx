@@ -1,6 +1,11 @@
 import * as React from 'react';
 
-const Icon: React.StatelessComponent<{}> = (props) => {
+export interface IconProps {
+    [key: string]: any;
+}
+
+const Icon: React.StatelessComponent<IconProps> = (props) => {
     return <span type={type} id={iconId} className={className} aria-disabled="" />;
 };
+
 export default Icon;
