@@ -19,10 +19,14 @@ export interface AngularControllerOptions {
     code: string;
 }
 
+export interface AngularTemplateOptions {
+    code: string;
+}
+
 export interface ComponentOptions {
     componentName: string;
     componentType?: ReactComponentType;
-    template?: string;
+    template?: AngularTemplateOptions;
     controller?: AngularControllerOptions;
 }
 
@@ -82,12 +86,29 @@ export function transform (options: TransformOptions): GeneratedComponent[] {
         } else {
             componentCode = `
                 ${ componentType === 'stateless' ? (
-                    `const ${ componentName }${ typescript ? ': React.StatelessComponent<{}>' : ''} = (props) => {
+                    `export interface ${ componentName }Props {
+                        [key: string]: any;
+                    }
+
+                    const ${ componentName }${ typescript ?
+                        `: React.StatelessComponent<${ componentName }Props>` : ''
+                    } = (props) => {
                         return ${ jsxResult };
                     };
+
                     export default ${ componentName };
                 `) : (`
-                    export default class ${ componentName } extends React.PureComponent${ typescript ? '<{}>' : ''} {
+                    export interface ${ componentName }Props {
+                        [key: string]: any;
+                    }
+
+                    export interface ${ componentName }State {
+                        [key: string]: any;
+                    }
+
+                    export default class ${ componentName } extends React.PureComponent${ typescript ?
+                        `<${ componentName }Props, ${ componentName }State>` : ''
+                    } {
                         render () {
                             return ${ jsxResult };
                         }

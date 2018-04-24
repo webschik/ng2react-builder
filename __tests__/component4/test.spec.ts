@@ -6,16 +6,22 @@ describe('transform()', () => {
         it('should generate TSX component', () => {
             return readFiles(
                 './component4/template.html',
+                './component4/controller.js',
                 './component4/index.tsx'
-            ).then(([template, componentCode]: string[]) => {
+            ).then(([template, controllerCode, componentCode]: string[]) => {
                 const generatedComponents: GeneratedComponent[] = transform({
                     react: {
                         typescript: true
                     },
                     components: [
                         {
-                            template,
-                            componentName: 'PhoneList'
+                            template: {code: template},
+                            controller: {
+                                name: 'PhoneDetailController',
+                                code: controllerCode
+                            },
+                            componentName: 'PhoneList',
+                            componentType: 'stateful'
                         }
                     ]
                 });

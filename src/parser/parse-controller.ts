@@ -13,10 +13,15 @@ interface NodePath {
     scope: {
         rename (from: string, to: string): void;
     };
+    remove (): void;
     insertBefore (nodes: types.Node[]): void;
     get (name: string): any;
     unshiftContainer (type: string, content: any): this;
     pushContainer (type: string, content: any): this;
+}
+
+interface DirectivePath extends NodePath {
+    node: types.Directive;
 }
 
 interface ClassDeclarationPath extends NodePath {
@@ -44,6 +49,14 @@ export default function parseController (
     traverse(ast, {
         Program (path: NodePath) {
             path.scope.rename(controllerName, componentName);
+        },
+
+        Directive (path: DirectivePath) {
+            const value: types.DirectiveLiteral = path.node.value;
+
+            if (value && value.value.indexOf('ng') === 0) {
+                path.remove();
+            }
         },
 
         ClassDeclaration (path: ClassDeclarationPath) {
@@ -95,18 +108,21 @@ export default function parseController (
                     ]);
                 }
 
+                let propsTypeAnnotation: types.GenericTypeAnnotation;
+
+                if (typescript && !node.superTypeParameters) {
+                    propsTypeAnnotation = types.genericTypeAnnotation(types.identifier(componentPropsInterface));
+                    node.superTypeParameters = types.typeParameterInstantiation([
+                        propsTypeAnnotation,
+                        types.genericTypeAnnotation(types.identifier(componentStateInterface))
+                    ]);
+                }
+
                 if (!node.superClass) {
                     node.superClass = types.memberExpression(
                         types.identifier('React'),
                         types.identifier(componentType === statefulComponentType ? 'Component' : 'PureComponent')
                     );
-
-                    if (typescript) {
-                        node.superTypeParameters = types.typeParameterInstantiation([
-                            types.genericTypeAnnotation(types.identifier(componentPropsInterface)),
-                            types.genericTypeAnnotation(types.identifier(componentStateInterface))
-                        ]);
-                    }
 
                     const methodsPaths: ClassMethodNodePath[] = path.get('body').get('body') || [];
                     const constructorMethodPath: ClassMethodNodePath = methodsPaths.find(({node}) => {
@@ -114,17 +130,38 @@ export default function parseController (
                     });
 
                     if (constructorMethodPath) {
+                        const constructorMethodNode: types.ClassMethod = constructorMethodPath.node;
+                        const propsParamIdentifier: types.Identifier = types.identifier('props');
+                        const contextParamIdentifier: types.Identifier = types.identifier('context');
+
+                        if (typescript) {
+                            (contextParamIdentifier as any).optional = true;
+                            contextParamIdentifier.typeAnnotation = types.typeAnnotation(types.anyTypeAnnotation());
+
+                            if (propsTypeAnnotation) {
+                                propsParamIdentifier.typeAnnotation = types.typeAnnotation(propsTypeAnnotation);
+                            }
+                        }
+
+                        constructorMethodNode.params.unshift(
+                            propsParamIdentifier,
+                            contextParamIdentifier
+                        );
+
                         constructorMethodPath.get('body').unshiftContainer(
                             'body',
-                            types.expressionStatement(
-                                types.callExpression(
-                                    types.identifier('super'),
-                                    [
-                                        types.identifier('props'),
-                                        types.identifier('context')
-                                    ]
-                                )
-                            )
+                            [
+                                types.expressionStatement(
+                                    types.callExpression(
+                                        types.identifier('super'),
+                                        [
+                                            types.identifier('props'),
+                                            types.identifier('context')
+                                        ]
+                                    )
+                                ),
+                                types.identifier('\n')
+                            ]
                         );
                     }
                 }

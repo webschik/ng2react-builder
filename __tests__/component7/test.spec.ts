@@ -15,7 +15,7 @@ describe('transform()', () => {
                     },
                     components: [
                         {
-                            template,
+                            template: {code: template},
                             controller: {
                                 name: 'ArticleCtrl',
                                 code: controllerCode

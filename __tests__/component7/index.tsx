@@ -15,17 +15,14 @@ class RealWorldComponent extends React.PureComponent<RealWorldComponentProps, Re
 
         this.article = article;
         this._Comments = Comments;
-
         this.currentUser = User.current;
-
         $rootScope.setPageTitle(this.article.title);
-
-        this.article.body = $sce.trustAsHtml(marked(this.article.body, { sanitize: true }));
-
-        Comments.getAll(this.article.slug).then(
-            (comments) => this.comments = comments
+        this.article.body = $sce.trustAsHtml(
+            marked(this.article.body, {
+                sanitize: true
+            })
         );
-
+        Comments.getAll(this.article.slug).then((comments) => (this.comments = comments));
         this.resetCommentForm();
     }
 

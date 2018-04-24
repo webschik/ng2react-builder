@@ -14,7 +14,7 @@ describe('transform()', () => {
                     },
                     components: [
                         {
-                            template,
+                            template: {code: template},
                             componentName: 'TestComponent'
                         }
                     ]
