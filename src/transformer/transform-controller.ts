@@ -95,7 +95,11 @@ function createComponentSuperClass (componentType: ReactComponentType) {
     );
 }
 
-function createComponentConstructorParams ({typescript, node}: {typescript: boolean; node: types.ClassMethod}) {
+function createComponentConstructorParams ({typescript, node, constructorParams}: {
+    typescript: boolean;
+    node: types.ClassMethod;
+    constructorParams: types.LVal[]
+}) {
     const propsParamIdentifier: types.Identifier = types.identifier('props');
     const contextParamIdentifier: types.Identifier = types.identifier('context');
 
@@ -108,8 +112,14 @@ function createComponentConstructorParams ({typescript, node}: {typescript: bool
         propsParamIdentifier,
         contextParamIdentifier
     ];
+    const oldParams: types.LVal[] = constructorParams.slice(0);
 
+    node.params.length = 0;
     node.params.unshift(...params);
+
+    if (oldParams[0]) {
+        node.params.push(types.identifier('/*'), ...oldParams, types.identifier('*/'));
+    }
 
     return params;
 }
@@ -173,10 +183,9 @@ export default function transformController (
                 );
                 const [propsParamIdentifier] = createComponentConstructorParams({
                     typescript,
-                    node: constructorMethod
+                    node: constructorMethod,
+                    constructorParams: node.params
                 });
-
-                constructorMethod.params.push(...node.params);
 
                 const componentClass: types.ClassExpression = types.classExpression(
                     types.identifier(componentName),
@@ -234,7 +243,8 @@ export default function transformController (
                         const constructorMethodNode: types.ClassMethod = constructorMethodPath.node;
                         const [propsParamIdentifier] = createComponentConstructorParams({
                             typescript,
-                            node: constructorMethodNode
+                            node: constructorMethodNode,
+                            constructorParams: constructorMethodNode.params
                         });
 
                         if (propsTypeAnnotation) {

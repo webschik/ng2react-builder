@@ -10,7 +10,7 @@ export interface RealWorldComponentState {
 }
 
 class RealWorldComponent extends React.PureComponent<RealWorldComponentProps, RealWorldComponentState> {
-    constructor(props: RealWorldComponentProps, context?: any, article, User, Comments, $sce, $rootScope) {
+    constructor(props: RealWorldComponentProps, context?: any /*, article, User, Comments, $sce, $rootScope, */) {
         super(props, context);
 
         this.article = article;

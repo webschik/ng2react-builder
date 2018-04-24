@@ -15,7 +15,7 @@ angular.module('phoneDetail').component('phoneDetail', {
         '$routeParams',
         'Phone',
         class PhoneList extends React.Component<PhoneListProps, PhoneListState> {
-            constructor(props: PhoneListProps, context?: any, $routeParams, Phone) {
+            constructor(props: PhoneListProps, context?: any /*, $routeParams, Phone, */) {
                 super(props, context);
 
                 var self = this;
