@@ -145,7 +145,7 @@ class RealWorldComponent extends React.PureComponent<RealWorldComponentProps, Re
                                         <fieldset className="form-group">
                                             <textarea
                                                 className="form-control"
-                                                rows="8"
+                                                rows={8}
                                                 ng-model="$ctrl.article.body"
                                                 placeholder="Write your article (in markdown)">
                                                 {' '}

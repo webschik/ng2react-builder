@@ -265,8 +265,25 @@ export default function serializeTemplate (
                     reactAttrValue = `"${ interpolatedValue }"`;
                 }
 
-                if (attrName === 'disabled' && reactAttrValue[0] !== startSymbol && reactAttrValue !== '"disabled"') {
-                    reactAttrValue = startSymbol + (reactAttrValue.slice(1, -1) || 'true') + endSymbol;
+                if (reactAttrValue[0] !== startSymbol) {
+                    switch (attrName) {
+                        case 'disabled':
+                            if (reactAttrValue !== '"disabled"') {
+                                reactAttrValue = startSymbol + (reactAttrValue.slice(1, -1) || 'true') + endSymbol;
+                            }
+                            break;
+                        case htmlAttr2React('autofocus'):
+                            if (reactAttrValue !== '"autofocus"') {
+                                reactAttrValue = startSymbol + (reactAttrValue.slice(1, -1) || 'true') + endSymbol;
+                            }
+                            break;
+                        case 'rows':
+                        case 'cols':
+                            reactAttrValue = startSymbol + (reactAttrValue.slice(1, -1) || '1') + endSymbol;
+                            break;
+                        default:
+                            //
+                    }
                 }
             }
 

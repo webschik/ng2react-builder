@@ -22,7 +22,7 @@ export default class PhoneDetail extends React.PureComponent<PhoneDetailProps, P
                                 placeholder="What needs to be done?"
                                 ng-model="newTodo"
                                 disabled={saving}
-                                autoFocus=""
+                                autoFocus={true}
                             />
                         </form>
                     </header>
