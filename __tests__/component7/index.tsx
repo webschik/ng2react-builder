@@ -123,7 +123,7 @@ class RealWorldComponent extends React.PureComponent<RealWorldComponentProps, Re
                                 <ListErrors errors="$ctrl.errors" />
 
                                 <form>
-                                    <fieldset disabled="$ctrl.isSubmitting">
+                                    <fieldset disabled={$ctrl.isSubmitting}>
                                         <fieldset className="form-group">
                                             <input
                                                 className="form-control form-control-lg"

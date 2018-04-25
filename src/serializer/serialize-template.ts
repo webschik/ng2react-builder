@@ -203,7 +203,7 @@ export default function serializeTemplate (
             const {startSymbol, endSymbol} = reactInterpolation;
 
             if (isClassOddAttr) {
-                reactAttrValue = `${ startSymbol}(index % 2) ? (${
+                reactAttrValue = `${ startSymbol }(index % 2) ? (${
                     stringifyNgExpression(ngParser, cleanNgAttrExpression(reactAttrValue, ngInterpolateOptions))
                 }) : undefined${ endSymbol }`;
             } else if (isClassEvenAttr) {
@@ -253,6 +253,10 @@ export default function serializeTemplate (
                     }
                 } else {
                     reactAttrValue = `"${ interpolatedValue }"`;
+                }
+
+                if (attrName === 'disabled' && reactAttrValue[0] !== startSymbol && reactAttrValue !== '"disabled"') {
+                    reactAttrValue = startSymbol + (reactAttrValue.slice(1, -1) || 'true') + endSymbol;
                 }
             }
 
