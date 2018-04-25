@@ -11,6 +11,12 @@ import stringifyNgExpression from './stringify-ng-expression';
 const angular: Angular = initAngular();
 const Serializer = require('parse5/lib/serializer/index');
 const {NAMESPACES: NS, TAG_NAMES: $} = require('parse5/lib/common/html');
+const ampPattern: RegExp = /&amp;/g;
+const ltPattern: RegExp = /&lt;/g;
+const gtPattern: RegExp = /&gt;/g;
+const quotePattern: RegExp = /&quot;/g;
+const emptyParenthesesPattern: RegExp = /\(\)/g;
+const nonEmptyParenthesesPattern: RegExp = /([a-z])\(([^\)])/g;
 
 interface ASTSerializer {
     [key: string]: any;
@@ -220,7 +226,7 @@ export default function serializeTemplate (
                 const interpolatedValue: string =
                     reactAttrValue &&
                     interpolate(ngParser, reactAttrValue, transformOptions);
-                const isEventHandlerAttr: boolean = /^on[A-Z][a-z]{3,}/.test(attrName);
+                const isEventHandlerAttr: boolean = /^on[A-Z][a-z]{2,}/.test(attrName);
 
                 // has interpolation or event handler
                 if (interpolatedValue && (reactAttrValue !== interpolatedValue || isEventHandlerAttr)) {
@@ -228,8 +234,12 @@ export default function serializeTemplate (
 
                     if (isEventHandlerAttr) {
                         attrValue = attrValue
-                            .replace(/\(\)/g, '')
-                            .replace(/([a-z])\(([^\)])/g, '$1.bind(this, $2');
+                            .replace(ampPattern, '&')
+                            .replace(ltPattern, '<')
+                            .replace(gtPattern, '>')
+                            .replace(quotePattern, '"')
+                            .replace(emptyParenthesesPattern, '')
+                            .replace(nonEmptyParenthesesPattern, '$1.bind(this, $2');
                     }
 
                     const attrValueLastIndex: number = attrValue.length - 1;

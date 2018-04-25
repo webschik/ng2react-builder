@@ -158,7 +158,7 @@ class RealWorldComponent extends React.PureComponent<RealWorldComponentProps, Re
                                                 type="text"
                                                 placeholder="Enter tags"
                                                 ng-model="$ctrl.tagField"
-                                                onKeyUp="$event.keyCode == 13 &amp;&amp; $ctrl.addTag()"
+                                                onKeyUp={$event.keyCode == 13 && $ctrl.addTag}
                                             />
 
                                             <div className="tag-list">
