@@ -195,6 +195,8 @@ export default function transformController (
                 );
                 let propsTypeAnnotation: types.GenericTypeAnnotation;
 
+                componentClass.body.body.push(types.identifier(`//${ jsxResultKeyword }`) as any);
+
                 if (typescript) {
                     addComponentGlobalTypeAnnotations(programPath, [componentPropsInterface, componentStateInterface]);
                     const params = createComponentSuperTypeParameters([
