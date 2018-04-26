@@ -268,13 +268,13 @@ export default function serializeTemplate (
                 if (reactAttrValue[0] !== startSymbol) {
                     switch (attrName) {
                         case htmlAttr2React('disabled'):
-                            if (reactAttrValue !== '"disabled"') {
-                                reactAttrValue = startSymbol + (reactAttrValue.slice(1, -1) || 'true') + endSymbol;
-                            }
-                            break;
                         case htmlAttr2React('autofocus'):
-                            if (reactAttrValue !== '"autofocus"') {
-                                reactAttrValue = startSymbol + (reactAttrValue.slice(1, -1) || 'true') + endSymbol;
+                        case htmlAttr2React('required'):
+                        case htmlAttr2React('readonly'):
+                            if (reactAttrValue === '""' || reactAttrValue === `"${ attrName }"`) {
+                                reactAttrValue = `${ startSymbol }true${ endSymbol }`;
+                            } else {
+                                reactAttrValue = startSymbol + reactAttrValue.slice(1, -1) + endSymbol;
                             }
                             break;
                         case htmlAttr2React('tabindex'):
@@ -285,7 +285,7 @@ export default function serializeTemplate (
                         case htmlAttr2React('step'):
                         case htmlAttr2React('maxlength'):
                         case htmlAttr2React('minlength'):
-                            reactAttrValue = startSymbol + (reactAttrValue.slice(1, -1) || '1') + endSymbol;
+                            reactAttrValue = startSymbol + reactAttrValue.slice(1, -1) + endSymbol;
                             break;
                         default:
                             //
