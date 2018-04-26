@@ -251,5 +251,9 @@ Method `transform` takes the next options:
 * `components[i].componentType` **[optional]** - 'pure', 'stateless', 'stateful'.  Default is **pure**
 * `replaceDirectives` **[optional]** - directives that you want to replace. It support tag names and attributes
 * `react` **[optional]** - React component options
-* `react.typescript` **[optional]** - output should be in Typescript. Default is **false**
-* `react.prettier` **[optional]** - [Prettier config](https://prettier.io/docs/en/options.html)
+    ```typescript
+      {
+          typescript: boolean; // output should be in Typescript. Default is false
+          prettier: string; // Prettier config - https://prettier.io/docs/en/options.html
+      }
+    ```
