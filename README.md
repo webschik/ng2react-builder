@@ -34,8 +34,8 @@ transform({
     },
     components: [
         {
-            componentType: 'stateless',
-            componentName: 'TestComponent',
+            componentType: 'pure',
+            componentName: 'PhoneDetail',
             template: {
                 code: `
                     <div ng-app="todomvc">
