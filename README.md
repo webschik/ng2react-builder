@@ -253,7 +253,7 @@ Method `transform` takes the next options:
 * `react` **[optional]** - React component options
     ```typescript
       {
-          typescript: boolean; // output should be in Typescript. Default is false
-          prettier: string; // Prettier config - https://prettier.io/docs/en/options.html
+          typescript?: boolean; // output should be in Typescript. Default is false
+          prettier?: string; // Prettier config - https://prettier.io/docs/en/options.html
       }
     ```
