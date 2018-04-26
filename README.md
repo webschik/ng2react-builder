@@ -233,22 +233,25 @@ export default class PhoneDetail extends React.PureComponent<PhoneDetailProps, P
 
 Method `transform` takes the next options:
 * `components` **[required]** - list of components options
-* `components[i].componentName` **[required]** - React component name
-* `components[i].template` **[optional]** - Angular template options
     ```typescript
-      {
-          code: string; // template's code
-      }
+      [
+          {
+              componentName: string, // React component name
+              componentType?: 'pure' | 'stateless' | 'stateful', // Default is 'pure'
+            
+              // Angular template options
+              template?: {
+                code: string // template's code
+              },
+            
+              // Angular Controller options
+              controller?: {
+                  name: string, // controller's name
+                  code: string // controller's code
+              }
+          }  
+      ]
     ```
-    
-* `components[i].controller` **[optional]** - Angular Controller options
-    ```typescript
-      {
-          name: string; // controller's name
-          code: string; // controller's code
-      }
-    ```
-* `components[i].componentType` **[optional]** - 'pure', 'stateless', 'stateful'.  Default is **pure**
 * `replaceDirectives` **[optional]** - directives that you want to replace. It support tag names and attributes
 * `react` **[optional]** - React component options
     ```typescript
