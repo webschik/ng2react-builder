@@ -267,7 +267,7 @@ export default function serializeTemplate (
 
                 if (reactAttrValue[0] !== startSymbol) {
                     switch (attrName) {
-                        case 'disabled':
+                        case htmlAttr2React('disabled'):
                             if (reactAttrValue !== '"disabled"') {
                                 reactAttrValue = startSymbol + (reactAttrValue.slice(1, -1) || 'true') + endSymbol;
                             }
@@ -277,8 +277,14 @@ export default function serializeTemplate (
                                 reactAttrValue = startSymbol + (reactAttrValue.slice(1, -1) || 'true') + endSymbol;
                             }
                             break;
-                        case 'rows':
-                        case 'cols':
+                        case htmlAttr2React('tabindex'):
+                        case htmlAttr2React('rows'):
+                        case htmlAttr2React('cols'):
+                        case htmlAttr2React('min'):
+                        case htmlAttr2React('max'):
+                        case htmlAttr2React('step'):
+                        case htmlAttr2React('maxlength'):
+                        case htmlAttr2React('minlength'):
                             reactAttrValue = startSymbol + (reactAttrValue.slice(1, -1) || '1') + endSymbol;
                             break;
                         default:
