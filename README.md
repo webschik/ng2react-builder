@@ -235,8 +235,19 @@ Method `transform` takes the next options:
 * `components` **[required]** - list of components options
 * `components[i].componentName` **[required]** - React component name
 * `components[i].template` **[optional]** - info over Angular template
-* `components[i].template.code` **[optional]** - string with Angular template
+    ```typescript
+      {
+          code: string; // template's code
+      }
+    ```
+    
 * `components[i].controller` **[optional]** - info over Angular Controller
+    ```typescript
+      {
+          name: string; // controller's name
+          code: string; // controller's code
+      }
+    ```
 * `components[i].componentType` **[optional]** - 'pure', 'stateless', 'stateful'.  Default is **pure**
 * `replaceDirectives` **[optional]** - directives that you want to replace. It support tag names and attributes
 * `react` **[optional]** - React component options
