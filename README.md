@@ -234,14 +234,14 @@ export default class PhoneDetail extends React.PureComponent<PhoneDetailProps, P
 Method `transform` takes the next options:
 * `components` **[required]** - list of components options
 * `components[i].componentName` **[required]** - React component name
-* `components[i].template` **[optional]** - info over Angular template
+* `components[i].template` **[optional]** - Angular template options
     ```typescript
       {
           code: string; // template's code
       }
     ```
     
-* `components[i].controller` **[optional]** - info over Angular Controller
+* `components[i].controller` **[optional]** - Angular Controller options
     ```typescript
       {
           name: string; // controller's name
