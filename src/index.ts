@@ -1,9 +1,7 @@
 import * as prettier from 'prettier';
-import parseTemplate from './parser/parse-template';
-
-export interface ComponentInfo {
-    template: string;
-}
+import transformController from './transformer/transform-controller';
+import transformTemplate from './transformer/transform-template';
+import {pureComponentType, ReactComponentType} from './react';
 
 export interface DirectiveReplaceInfo {
     tagName: string;
@@ -16,14 +14,28 @@ export interface AngularInterpolateOptions {
     bindOnce: string;
 }
 
-export interface ReactComponentOptions {
-    template?: string;
+export interface AngularControllerOptions {
+    name: string;
+    code: string;
+}
+
+export interface AngularTemplateOptions {
+    code: string;
+}
+
+export interface ComponentOptions {
+    componentName: string;
+    componentType?: ReactComponentType;
+    template?: AngularTemplateOptions;
+    controller?: AngularControllerOptions;
+}
+
+export interface TransformOptions {
+    components: ComponentOptions[];
     replaceDirectives?: {
         [key: string]: DirectiveReplaceInfo;
     };
-    react: {
-        componentName: string;
-        componentType?: 'stateless' | 'stateful' | 'pure';
+    react?: {
         typescript?: boolean;
         prettier?: prettier.Options;
     };
@@ -32,18 +44,22 @@ export interface ReactComponentOptions {
     };
 }
 
-export function createReactComponent (customOptions: ReactComponentOptions): string {
-    const options: ReactComponentOptions = Object.assign({}, customOptions, {
-        angular: Object.assign({}, customOptions.angular, {
+export interface GeneratedComponent {
+    code: string;
+}
+
+export function transform (options: TransformOptions): GeneratedComponent[] {
+    const transformOptions: TransformOptions = Object.assign({}, options, {
+        angular: Object.assign({}, options.angular, {
             interpolate: Object.assign({
                 startSymbol: '{{',
                 endSymbol: '}}',
                 bindOnce: '::'
-            }, customOptions.angular && customOptions.angular.interpolate)
+            }, options.angular && options.angular.interpolate)
         }),
         react: Object.assign({
-            componentType: 'pure'
-        }, customOptions.react),
+            typescript: false
+        }, options.react),
         replaceDirectives: Object.assign({
             'ng-view': {
                 tagName: 'Switch'
@@ -52,45 +68,73 @@ export function createReactComponent (customOptions: ReactComponentOptions): str
                 tagName: 'NavLink',
                 valueProp: 'to'
             }
-        }, customOptions.replaceDirectives)
+        }, options.replaceDirectives)
     });
+    const {typescript} = transformOptions.react;
 
-    const {template, react} = options;
-    const {typescript, componentType, componentName} = react;
-    let componentInfo: ComponentInfo;
+    return transformOptions.components.map((componentOptions: ComponentOptions) => {
+        const {template, controller, componentName, componentType = pureComponentType} = componentOptions;
+        let jsxResult: string = 'null';
+        let componentCode: string;
 
-    if (template) {
-        componentInfo = parseTemplate(template, options);
-    }
+        if (template) {
+            jsxResult = transformTemplate(template, transformOptions);
+        }
 
-    const componentRenderResult: string = componentInfo && componentInfo.template || 'null';
+        if (controller) {
+            componentCode = transformController(componentOptions, jsxResult, transformOptions);
+        } else {
+            componentCode = `
+                ${ componentType === 'stateless' ? (
+                    `export interface ${ componentName }Props {
+                        [key: string]: any;
+                    }
 
-    return prettier.format(`
-        ${ typescript ? 'import * as React from \'react\';' : 'import React from \'react\';'}
+                    const ${ componentName }${ typescript ?
+                        `: React.StatelessComponent<${ componentName }Props>` : ''
+                    } = (props) => {
+                        return ${ jsxResult };
+                    };
 
-        ${ componentType === 'stateless' ? (
-            `const ${ componentName }${ typescript ? ': React.StatelessComponent<{}>' : ''} = (props) => {
-                return ${ componentRenderResult };
-            };
+                    export default ${ componentName };
+                `) : (`
+                    export interface ${ componentName }Props {
+                        [key: string]: any;
+                    }
 
-            export default ${ componentName };
-        `) : (`
-            export default class ${ componentName } extends React.PureComponent${ typescript ? '<{}>' : ''} {
-                render () {
-                    return ${ componentRenderResult };
-                }
-            }
-        `)}
-    `, Object.assign({
-        printWidth: 120,
-        tabWidth: 4,
-        useTabs: false,
-        semi: true,
-        singleQuote: true,
-        trailingComma: 'none',
-        bracketSpacing: false,
-        jsxBracketSameLine: true,
-        arrowParens: 'always',
-        parser: typescript ? 'typescript' : 'babylon'
-    }, react.prettier));
+                    export interface ${ componentName }State {
+                        [key: string]: any;
+                    }
+
+                    export default class ${ componentName } extends React.PureComponent${ typescript ?
+                        `<${ componentName }Props, ${ componentName }State>` : ''
+                    } {
+                        render () {
+                            return ${ jsxResult };
+                        }
+                    }
+                `)}
+            `;
+        }
+
+        const code: string = prettier.format(`
+            ${ typescript ? 'import * as React from \'react\';' : 'import React from \'react\';'}
+            ${ componentCode }
+            `, Object.assign({
+            printWidth: 120,
+            tabWidth: 4,
+            useTabs: false,
+            semi: true,
+            singleQuote: true,
+            trailingComma: 'none',
+            bracketSpacing: false,
+            jsxBracketSameLine: true,
+            arrowParens: 'always',
+            parser: typescript ? 'typescript' : 'babylon'
+        }, transformOptions.react && transformOptions.react.prettier));
+
+        return {
+            code
+        };
+    });
 }

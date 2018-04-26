@@ -1,6 +1,14 @@
 import * as React from 'react';
 
-export default class PhoneDetail extends React.PureComponent<{}> {
+export interface PhoneDetailProps {
+    [key: string]: any;
+}
+
+export interface PhoneDetailState {
+    [key: string]: any;
+}
+
+export default class PhoneDetail extends React.PureComponent<PhoneDetailProps, PhoneDetailState> {
     render() {
         return (
             <div ng-app="todomvc">
@@ -13,8 +21,8 @@ export default class PhoneDetail extends React.PureComponent<{}> {
                                 className="new-todo"
                                 placeholder="What needs to be done?"
                                 ng-model="newTodo"
-                                disabled="saving"
-                                autoFocus=""
+                                disabled={saving}
+                                autoFocus={true}
                             />
                         </form>
                     </header>
@@ -64,7 +72,7 @@ export default class PhoneDetail extends React.PureComponent<{}> {
                         <footer className="footer">
                             <span className="todo-count">
                                 <strong>{remainingCount}</strong>
-                                <ng-pluralize count="remainingCount" when="{ one: 'item left', other: 'items left' }" />
+                                <NgPluralize count="remainingCount" when="{ one: 'item left', other: 'items left' }" />
                             </span>
                             <ul className="filters">
                                 <li>

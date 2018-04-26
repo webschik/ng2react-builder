@@ -1,5 +1,5 @@
 import {AngularParser} from '../angular';
-import {ReactComponentOptions} from '../index';
+import {TransformOptions} from '../index';
 import {reactInterpolation} from '../react';
 import stringifyNgExpression from './stringify-ng-expression';
 
@@ -17,7 +17,7 @@ function unescapeText (
     return text.replace(escapedStartRegexp, startSymbol).replace(escapedEndRegexp, endSymbol);
 }
 
-export default function interpolate (ngParser: AngularParser, text: string, options: ReactComponentOptions): string {
+export default function interpolate (ngParser: AngularParser, text: string, options: TransformOptions): string {
     const {startSymbol, endSymbol, bindOnce} = options.angular.interpolate;
     const startSymbolLength: number = startSymbol.length;
     const endSymbolLength: number = endSymbol.length;

@@ -1,30 +1,31 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import {promisify} from 'util';
-import {createReactComponent} from '../../src/index';
+import {transform, GeneratedComponent} from '../../src/index';
+import readFiles from '../read-files';
 
-const readFile = promisify(fs.readFile);
-
-describe('createReactComponent()', () => {
-    function getSources (path1: string, path2: string): Promise<[string, string]> {
-        return Promise.all([
-            readFile(path.resolve(__dirname, path1), 'utf8'),
-            readFile(path.resolve(__dirname, path2), 'utf8')
-        ]);
-    }
-
+describe('transform()', () => {
     describe('component7', () => {
         it('should generate TSX component', () => {
-            return getSources('./template.html', './index.tsx').then(([template, expectedCode]: string[]) => {
-                const generatedCode: string = createReactComponent({
-                    template,
+            return readFiles(
+                './component7/template.html',
+                './component7/controller.js',
+                './component7/index.tsx'
+            ).then(([template, controllerCode, componentCode]: string[]) => {
+                const generatedComponents: GeneratedComponent[] = transform({
                     react: {
-                        typescript: true,
-                        componentName: 'RealWorld'
-                    }
+                        typescript: true
+                    },
+                    components: [
+                        {
+                            template: {code: template},
+                            controller: {
+                                name: 'ArticleCtrl',
+                                code: controllerCode
+                            },
+                            componentName: 'RealWorldComponent'
+                        }
+                    ]
                 });
 
-                expect(generatedCode).toBe(expectedCode);
+                expect(generatedComponents).toEqual([{code: componentCode}]);
             });
         });
     });

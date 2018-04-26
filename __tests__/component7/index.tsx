@@ -1,6 +1,60 @@
 import * as React from 'react';
+import marked from 'marked';
 
-export default class RealWorld extends React.PureComponent<{}> {
+export interface RealWorldComponentProps {
+    [key: string]: any;
+}
+
+export interface RealWorldComponentState {
+    [key: string]: any;
+}
+
+class RealWorldComponent extends React.PureComponent<RealWorldComponentProps, RealWorldComponentState> {
+    constructor(props: RealWorldComponentProps, context?: any /*, article, User, Comments, $sce, $rootScope, */) {
+        super(props, context);
+
+        this.article = article;
+        this._Comments = Comments;
+        this.currentUser = User.current;
+        $rootScope.setPageTitle(this.article.title);
+        this.article.body = $sce.trustAsHtml(
+            marked(this.article.body, {
+                sanitize: true
+            })
+        );
+        Comments.getAll(this.article.slug).then((comments) => (this.comments = comments));
+        this.resetCommentForm();
+    }
+
+    resetCommentForm() {
+        this.commentForm = {
+            isSubmitting: false,
+            body: '',
+            errors: []
+        };
+    }
+
+    addComment() {
+        this.commentForm.isSubmitting = true;
+
+        this._Comments.add(this.article.slug, this.commentForm.body).then(
+            (comment) => {
+                this.comments.unshift(comment);
+                this.resetCommentForm();
+            },
+            (err) => {
+                this.commentForm.isSubmitting = false;
+                this.commentForm.errors = err.data.errors;
+            }
+        );
+    }
+
+    deleteComment(commentId, index) {
+        this._Comments.destroy(commentId, this.article.slug).then((success) => {
+            this.comments.splice(index, 1);
+        });
+    }
+
     render() {
         return (
             <div>
@@ -66,10 +120,10 @@ export default class RealWorld extends React.PureComponent<{}> {
                     <div className="container page">
                         <div className="row">
                             <div className="col-md-10 offset-md-1 col-xs-12">
-                                <list-errors errors="$ctrl.errors" />
+                                <ListErrors errors="$ctrl.errors" />
 
                                 <form>
-                                    <fieldset disabled="$ctrl.isSubmitting">
+                                    <fieldset disabled={$ctrl.isSubmitting}>
                                         <fieldset className="form-group">
                                             <input
                                                 className="form-control form-control-lg"
@@ -91,7 +145,7 @@ export default class RealWorld extends React.PureComponent<{}> {
                                         <fieldset className="form-group">
                                             <textarea
                                                 className="form-control"
-                                                rows="8"
+                                                rows={8}
                                                 ng-model="$ctrl.article.body"
                                                 placeholder="Write your article (in markdown)">
                                                 {' '}
@@ -104,7 +158,7 @@ export default class RealWorld extends React.PureComponent<{}> {
                                                 type="text"
                                                 placeholder="Enter tags"
                                                 ng-model="$ctrl.tagField"
-                                                onKeyUp="$event.keyCode == 13 &amp;&amp; $ctrl.addTag()"
+                                                onKeyUp={$event.keyCode == 13 && $ctrl.addTag}
                                             />
 
                                             <div className="tag-list">
@@ -148,3 +202,5 @@ export default class RealWorld extends React.PureComponent<{}> {
         );
     }
 }
+
+export default RealWorldComponent;

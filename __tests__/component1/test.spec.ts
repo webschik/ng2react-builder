@@ -1,23 +1,14 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import {promisify} from 'util';
-import {createReactComponent} from '../../src/index';
+import {transform, GeneratedComponent} from '../../src/index';
+import readFiles from '../read-files';
 
-const readFile = promisify(fs.readFile);
-
-describe('createReactComponent()', () => {
-    function getSources (path1: string, path2: string): Promise<[string, string]> {
-        return Promise.all([
-            readFile(path.resolve(__dirname, path1), 'utf8'),
-            readFile(path.resolve(__dirname, path2), 'utf8')
-        ]);
-    }
-
+describe('transform()', () => {
     describe('component1', () => {
         it('should generate TSX component', () => {
-            return getSources('./template.html', './index.tsx').then(([template, expectedCode]: string[]) => {
-                const generatedCode: string = createReactComponent({
-                    template,
+            return readFiles(
+                './component1/template.html',
+                './component1/index.tsx'
+            ).then(([template, componentCode]: string[]) => {
+                const generatedComponents: GeneratedComponent[] = transform({
                     replaceDirectives: {
                         'my-icon': {
                             tagName: 'Icon',
@@ -25,12 +16,17 @@ describe('createReactComponent()', () => {
                         }
                     },
                     react: {
-                        typescript: true,
-                        componentName: 'TestComponent'
-                    }
+                        typescript: true
+                    },
+                    components: [
+                        {
+                            template: {code: template},
+                            componentName: 'TestComponent'
+                        }
+                    ]
                 });
 
-                expect(generatedCode).toBe(expectedCode);
+                expect(generatedComponents).toEqual([{code: componentCode}]);
             });
         });
     });

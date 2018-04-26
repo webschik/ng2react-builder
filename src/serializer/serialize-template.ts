@@ -1,7 +1,7 @@
 import {AST} from 'parse5/lib';
 import {AngularLexer, AngularParser, Angular, initAngular} from '../angular';
-import {AngularInterpolateOptions, ReactComponentOptions} from '../index';
-import {ASTElement} from '../parser/parse-template';
+import {AngularInterpolateOptions, TransformOptions} from '../index';
+import {ASTElement} from '../transformer/transform-template';
 import {htmlAttr2React, reactInterpolation} from '../react';
 import cleanNgAttrExpression from './clean-ng-attr-expression';
 import hasMultipleSiblingElements from '../parser/has-multiple-sibling-elements';
@@ -11,17 +11,23 @@ import stringifyNgExpression from './stringify-ng-expression';
 const angular: Angular = initAngular();
 const Serializer = require('parse5/lib/serializer/index');
 const {NAMESPACES: NS, TAG_NAMES: $} = require('parse5/lib/common/html');
+const ampPattern: RegExp = /&amp;/g;
+const ltPattern: RegExp = /&lt;/g;
+const gtPattern: RegExp = /&gt;/g;
+const quotePattern: RegExp = /&quot;/g;
+const emptyParenthesesPattern: RegExp = /\(\)/g;
+const nonEmptyParenthesesPattern: RegExp = /([a-z])\(([^\)])/g;
 
 interface ASTSerializer {
     [key: string]: any;
 }
 
-export default function serialize (
+export default function serializeTemplate (
     fragment: AST.HtmlParser2.DocumentFragment,
     serializerOptions: {treeAdapter: AST.TreeAdapter},
-    componentOptions: ReactComponentOptions
+    transformOptions: TransformOptions
 ): string {
-    const {react} = componentOptions;
+    const {react} = transformOptions;
     const serializer: ASTSerializer = new Serializer(fragment, serializerOptions);
     const lexer: AngularLexer = new angular.Lexer({
         csp: false,
@@ -36,7 +42,7 @@ export default function serialize (
         }
     });
     const ngInterpolateOptions: AngularInterpolateOptions =
-        componentOptions.angular.interpolate as AngularInterpolateOptions;
+        transformOptions.angular.interpolate as AngularInterpolateOptions;
 
     if (hasMultipleSiblingElements(fragment.firstChild)) {
         (fragment as any).openedElementGroupsCount = 1;
@@ -203,7 +209,7 @@ export default function serialize (
             const {startSymbol, endSymbol} = reactInterpolation;
 
             if (isClassOddAttr) {
-                reactAttrValue = `${ startSymbol}(index % 2) ? (${
+                reactAttrValue = `${ startSymbol }(index % 2) ? (${
                     stringifyNgExpression(ngParser, cleanNgAttrExpression(reactAttrValue, ngInterpolateOptions))
                 }) : undefined${ endSymbol }`;
             } else if (isClassEvenAttr) {
@@ -219,8 +225,8 @@ export default function serialize (
             } else {
                 const interpolatedValue: string =
                     reactAttrValue &&
-                    interpolate(ngParser, reactAttrValue, componentOptions);
-                const isEventHandlerAttr: boolean = /^on[A-Z][a-z]{3,}/.test(attrName);
+                    interpolate(ngParser, reactAttrValue, transformOptions);
+                const isEventHandlerAttr: boolean = /^on[A-Z][a-z]{2,}/.test(attrName);
 
                 // has interpolation or event handler
                 if (interpolatedValue && (reactAttrValue !== interpolatedValue || isEventHandlerAttr)) {
@@ -228,8 +234,12 @@ export default function serialize (
 
                     if (isEventHandlerAttr) {
                         attrValue = attrValue
-                            .replace(/\(\)/g, '')
-                            .replace(/([a-z])\(([^\)])/g, '$1.bind(this, $2');
+                            .replace(ampPattern, '&')
+                            .replace(ltPattern, '<')
+                            .replace(gtPattern, '>')
+                            .replace(quotePattern, '"')
+                            .replace(emptyParenthesesPattern, '')
+                            .replace(nonEmptyParenthesesPattern, '$1.bind(this, $2');
                     }
 
                     const attrValueLastIndex: number = attrValue.length - 1;
@@ -254,6 +264,33 @@ export default function serialize (
                 } else {
                     reactAttrValue = `"${ interpolatedValue }"`;
                 }
+
+                if (reactAttrValue[0] !== startSymbol) {
+                    switch (attrName) {
+                        case htmlAttr2React('disabled'):
+                        case htmlAttr2React('autofocus'):
+                        case htmlAttr2React('required'):
+                        case htmlAttr2React('readonly'):
+                            if (reactAttrValue === '""' || reactAttrValue === `"${ attrName }"`) {
+                                reactAttrValue = `${ startSymbol }true${ endSymbol }`;
+                            } else {
+                                reactAttrValue = startSymbol + reactAttrValue.slice(1, -1) + endSymbol;
+                            }
+                            break;
+                        case htmlAttr2React('tabindex'):
+                        case htmlAttr2React('rows'):
+                        case htmlAttr2React('cols'):
+                        case htmlAttr2React('min'):
+                        case htmlAttr2React('max'):
+                        case htmlAttr2React('step'):
+                        case htmlAttr2React('maxlength'):
+                        case htmlAttr2React('minlength'):
+                            reactAttrValue = startSymbol + reactAttrValue.slice(1, -1) + endSymbol;
+                            break;
+                        default:
+                            //
+                    }
+                }
             }
 
             this.html += reactAttrValue;
@@ -276,7 +313,7 @@ export default function serialize (
         } else {
             const escapedContent: string = Serializer.escapeString(content, false);
 
-            this.html += escapedContent && interpolate(ngParser, escapedContent, componentOptions) || '';
+            this.html += escapedContent && interpolate(ngParser, escapedContent, transformOptions) || '';
         }
     };
 

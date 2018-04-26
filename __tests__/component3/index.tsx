@@ -1,6 +1,14 @@
 import * as React from 'react';
 
-export default class TestComponent extends React.PureComponent<{}> {
+export interface TestComponentProps {
+    [key: string]: any;
+}
+
+export interface TestComponentState {
+    [key: string]: any;
+}
+
+export default class TestComponent extends React.PureComponent<TestComponentProps, TestComponentState> {
     render() {
         return [
             orders.map((order, index: number) => {

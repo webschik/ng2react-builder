@@ -1,8 +1,8 @@
 import {parseFragment, treeAdapters, AST} from 'parse5';
-import {ComponentInfo, ReactComponentOptions} from '../index';
-import parseNgAttrs from './parse-ng-attrs';
-import setReactTagName from './set-react-tag-name';
-import serialize from '../serializer/serialize';
+import {AngularTemplateOptions, TransformOptions} from '../index';
+import parseNgAttrs from '../parser/parse-ng-attrs';
+import setReactTagName from '../parser/set-react-tag-name';
+import serializeTemplate from '../serializer/serialize-template';
 
 const defaultTreeAdapter: AST.TreeAdapter = treeAdapters.htmlparser2;
 const {createElement, adoptAttributes} = defaultTreeAdapter;
@@ -26,36 +26,46 @@ export interface ASTElement extends AST.HtmlParser2.Element {
     iteratorInfo?: AngularIteratorInfo;
 }
 
-export default function parseTemplate (template: string, componentOptions: ReactComponentOptions): ComponentInfo {
+export default function transformTemplate (
+    template: AngularTemplateOptions,
+    transformOptions: TransformOptions
+): string {
     const treeAdapter: AST.TreeAdapter = Object.assign({}, defaultTreeAdapter, {
         createElement (tagName: string, namespaceURI: string, attrs: AST.Default.Attribute[]) {
             const el: ASTElement = createElement.call(this, tagName, namespaceURI, attrs);
 
-            setReactTagName(el, componentOptions);
-            parseNgAttrs(el, componentOptions);
+            setReactTagName(el, transformOptions);
+            parseNgAttrs(el, transformOptions);
 
             return el;
         },
         adoptAttributes (el: ASTElement, attrs: AST.Default.Attribute[]) {
             adoptAttributes.call(this, el, attrs);
 
-            setReactTagName(el, componentOptions);
-            parseNgAttrs(el, componentOptions);
+            setReactTagName(el, transformOptions);
+            parseNgAttrs(el, transformOptions);
         }
     });
-    const fragment: AST.HtmlParser2.DocumentFragment = parseFragment(template, {
+    const fragment: AST.HtmlParser2.DocumentFragment = parseFragment(template.code, {
         treeAdapter
     }) as AST.HtmlParser2.DocumentFragment;
 
-    const output: string = serialize(fragment, {
+    return serializeTemplate(fragment, {
         treeAdapter: Object.assign({}, treeAdapter, {
-            getTagName (node: ASTElement) {
-                return node.reactTagName || node.name;
+            getTagName ({reactTagName, name}: ASTElement) {
+                if (reactTagName) {
+                    return reactTagName;
+                }
+
+                // It's a custom tag. Transform <my-custom-component /> to <MyCustomComponent />
+                if (name.includes('-')) {
+                    return name[0].toUpperCase() + name.slice(1).replace(/-([^\-])/g, (_: string, ch: string) => {
+                        return ch.toUpperCase();
+                    });
+                }
+
+                return name;
             }
         })
-    }, componentOptions);
-
-    return {
-        template: output
-    };
+    }, transformOptions);
 }

@@ -1,31 +1,27 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import {promisify} from 'util';
-import {createReactComponent} from '../../src/index';
+import {transform, GeneratedComponent} from '../../src/index';
+import readFiles from '../read-files';
 
-const readFile = promisify(fs.readFile);
-
-describe('createReactComponent()', () => {
-    function getSources (path1: string, path2: string): Promise<[string, string]> {
-        return Promise.all([
-            readFile(path.resolve(__dirname, path1), 'utf8'),
-            readFile(path.resolve(__dirname, path2), 'utf8')
-        ]);
-    }
-
+describe('transform()', () => {
     describe('component2', () => {
         it('should generate TSX component', () => {
-            return getSources('./template.html', './index.tsx').then(([template, expectedCode]: string[]) => {
-                const generatedCode: string = createReactComponent({
-                    template,
+            return readFiles(
+                './component2/template.html',
+                './component2/index.tsx'
+            ).then(([template, componentCode]: string[]) => {
+                const generatedComponents: GeneratedComponent[] = transform({
                     react: {
-                        typescript: true,
-                        componentName: 'Icon',
-                        componentType: 'stateless'
-                    }
+                        typescript: true
+                    },
+                    components: [
+                        {
+                            template: {code: template},
+                            componentName: 'Icon',
+                            componentType: 'stateless'
+                        }
+                    ]
                 });
 
-                expect(generatedCode).toBe(expectedCode);
+                expect(generatedComponents).toEqual([{code: componentCode}]);
             });
         });
     });
