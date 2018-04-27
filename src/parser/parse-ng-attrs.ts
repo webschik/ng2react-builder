@@ -44,8 +44,13 @@ export default function parseNgAttrs (el: ASTElement, transformOptions: Transfor
                     el.isIteratorEnd = true;
                     break;
                 case 'ng-cloak':
+                case 'ng-app':
                     break;
                 default:
+                    if (name === 'ng-trim' && value === 'false') {
+                        break;
+                    }
+
                     if (name.indexOf(ngAttr) === 0) {
                         const attrName: string = name.slice(ngAttr.length);
 

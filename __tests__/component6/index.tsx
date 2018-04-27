@@ -11,7 +11,7 @@ export interface PhoneDetailState {
 export default class PhoneDetail extends React.PureComponent<PhoneDetailProps, PhoneDetailState> {
     render() {
         return (
-            <div ng-app="todomvc">
+            <div>
                 <Switch />
                 <section className="todoapp">
                     <header className="header">

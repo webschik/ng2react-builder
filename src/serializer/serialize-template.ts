@@ -186,11 +186,9 @@ export default function serializeTemplate (
             } else if (attrName === 'ng-class-even') {
                 isClassEvenAttr = true;
                 attrName = htmlAttr2React('class');
-            } else if (attrName === 'ng-model' || attrName === 'data-ng-model') {
+            } else if (attrName === 'ng-model') {
                 isNgModelAttr = true;
                 attrName = htmlAttr2React('value');
-            } else if ((attrName === 'ng-trim' || attrName === 'data-ng-trim') && reactAttrValue === 'false') {
-                continue;
             }
 
             this.html += ' ';
