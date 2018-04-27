@@ -3,15 +3,7 @@ import {AngularASTExpression, AngularParser} from '../angular';
 function stringifyCallExpression (expression: AngularASTExpression) {
     const {callee, arguments: args} = expression;
 
-    if (!callee.name) {
-        return stringifyExpression(callee);
-    }
-
-    if (!args[0]) {
-        return callee.name;
-    }
-
-    return `${ callee.name }(${ args.map(stringifyExpression).join(', ') })`;
+    return `${ stringifyExpression(callee) }(${ args.map(stringifyExpression).join(', ') })`;
 }
 
 function stringifyMemberExpression (expression: AngularASTExpression) {
@@ -19,11 +11,17 @@ function stringifyMemberExpression (expression: AngularASTExpression) {
 }
 
 function stringifyBinaryExpression ({left, operator, right}: AngularASTExpression) {
-    return `${ left ? stringifyExpression(left) : '' }${ operator }${ right ? stringifyExpression(right) : '' }`;
+    return `${ left ? stringifyExpression(left) : '' } ${ operator } ${ right ? stringifyExpression(right) : '' }`;
 }
 
 function stringifyConditionalExpression ({alternate, test, consequent}: AngularASTExpression) {
-    return `${ stringifyExpression(test) }?${ stringifyExpression(alternate) }:${ stringifyExpression(consequent) }`;
+    return `${
+        stringifyExpression(test)
+    } ? ${ stringifyExpression(alternate) } : ${ stringifyExpression(consequent) }`;
+}
+
+function stringifyLogicalExpression ({left, operator, right}: AngularASTExpression) {
+    return `${ left ? stringifyExpression(left) : '' } ${ operator } ${ right ? stringifyExpression(right) : '' }`;
 }
 
 function stringifyIdentifier (expression: AngularASTExpression) {
@@ -31,7 +29,15 @@ function stringifyIdentifier (expression: AngularASTExpression) {
 }
 
 function stringifyLiteral ({value}: AngularASTExpression) {
-    return value ? `'${ value }'` : '';
+    if (value != null) {
+        if (typeof value === 'number') {
+            return String(value);
+        }
+
+        return `'${ value }'`;
+    }
+
+    return value;
 }
 
 function stringifyExpression (expression: AngularASTExpression): string {
@@ -49,6 +55,9 @@ function stringifyExpression (expression: AngularASTExpression): string {
             break;
         case 'ConditionalExpression':
             output += stringifyConditionalExpression(expression);
+            break;
+        case 'LogicalExpression':
+            output += stringifyLogicalExpression(expression);
             break;
         case 'Identifier':
             output += stringifyIdentifier(expression);

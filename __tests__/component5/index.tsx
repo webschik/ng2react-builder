@@ -128,7 +128,7 @@ export default class PhoneDetail extends React.PureComponent<PhoneDetailProps, P
                         <dt>Primary</dt>
                         <dd>{$ctrl.phone.camera.primary}</dd>
                         <dt>Features</dt>
-                        <dd>{$ctrl.phone.camera.features.join}</dd>
+                        <dd>{$ctrl.phone.camera.features.join(', ')}</dd>
                     </dl>
                 </li>
                 <li>

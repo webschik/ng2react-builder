@@ -29,7 +29,7 @@
             <div class="contact__field">
                 <label>
                     Email
-                    <span class="contact__error" ng-if="contactDetailForm.email.$error.email">
+                    <span class="contact__error" ng-hide="!contactDetailForm.email.$error.email">
             Must be a valid email
           </span>
                 </label>

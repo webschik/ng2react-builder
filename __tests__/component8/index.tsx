@@ -80,7 +80,7 @@ class ContactDetail extends React.Component<ContactDetailProps, ContactDetailSta
                         <div className="contact__field">
                             <label>
                                 Email
-                                {contactDetailForm.email.$error.email ? (
+                                {!!contactDetailForm.email.$error.email ? (
                                     <span className="contact__error">Must be a valid email</span>
                                 ) : null}
                             </label>
