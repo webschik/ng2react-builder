@@ -20,7 +20,7 @@ export default class PhoneDetail extends React.PureComponent<PhoneDetailProps, P
                             <input
                                 className="new-todo"
                                 placeholder="What needs to be done?"
-                                ng-model="newTodo"
+                                value={newTodo}
                                 disabled={saving}
                                 autoFocus={true}
                             />
@@ -32,7 +32,7 @@ export default class PhoneDetail extends React.PureComponent<PhoneDetailProps, P
                                 id="toggle-all"
                                 className="toggle-all"
                                 type="checkbox"
-                                ng-model="allChecked"
+                                value={allChecked}
                                 onClick={markAll.bind(this, allChecked)}
                             />
                             <label htmlFor="toggle-all">Mark all as complete</label>
@@ -46,7 +46,7 @@ export default class PhoneDetail extends React.PureComponent<PhoneDetailProps, P
                                                 <input
                                                     className="toggle"
                                                     type="checkbox"
-                                                    ng-model="todo.completed"
+                                                    value={todo.completed}
                                                     onChange={toggleCompleted.bind(this, todo)}
                                                 />
                                                 <label onDoubleClick={editTodo.bind(this, todo)}>{todo.title}</label>
@@ -55,8 +55,7 @@ export default class PhoneDetail extends React.PureComponent<PhoneDetailProps, P
                                             <form onSubmit={saveEdits.bind(this, todo, 'submit')}>
                                                 <input
                                                     className="edit"
-                                                    ng-trim="false"
-                                                    ng-model="todo.title"
+                                                    value={todo.title}
                                                     todo-escape="revertEdits(todo)"
                                                     onBlur={saveEdits.bind(this, todo, 'blur')}
                                                     todo-focus="todo == editedTodo"

@@ -1,7 +1,7 @@
 {
   "name": "ng2react-builder",
   "description": "Angular1 -> React.js transpiler",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

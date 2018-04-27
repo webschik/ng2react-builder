@@ -178,8 +178,7 @@ export default function serializeTemplate (
             let attrName: string = attr.name;
             let isClassOddAttr: boolean;
             let isClassEvenAttr: boolean;
-
-            this.html += ' ';
+            let isNgModelAttr: boolean;
 
             if (attrName === 'ng-class-odd') {
                 isClassOddAttr = true;
@@ -187,7 +186,14 @@ export default function serializeTemplate (
             } else if (attrName === 'ng-class-even') {
                 isClassEvenAttr = true;
                 attrName = htmlAttr2React('class');
+            } else if (attrName === 'ng-model' || attrName === 'data-ng-model') {
+                isNgModelAttr = true;
+                attrName = htmlAttr2React('value');
+            } else if ((attrName === 'ng-trim' || attrName === 'data-ng-trim') && reactAttrValue === 'false') {
+                continue;
             }
+
+            this.html += ' ';
 
             if (!attr.namespace) {
                 this.html += attrName;
@@ -216,6 +222,10 @@ export default function serializeTemplate (
                 reactAttrValue = `${ startSymbol}(index % 2) ? undefined : (${
                     stringifyNgExpression(ngParser, cleanNgAttrExpression(reactAttrValue, ngInterpolateOptions))
                 })${ endSymbol }`;
+            } else if (isNgModelAttr) {
+                reactAttrValue = startSymbol +
+                    stringifyNgExpression(ngParser, cleanNgAttrExpression(reactAttrValue, ngInterpolateOptions)) +
+                    endSymbol;
             } else if (attrName === 'dangerouslySetInnerHTML') {
                 reactAttrValue = startSymbol +
                     (reactAttrValue ? `{__html: ${
@@ -271,6 +281,7 @@ export default function serializeTemplate (
                         case htmlAttr2React('autofocus'):
                         case htmlAttr2React('required'):
                         case htmlAttr2React('readonly'):
+                        case htmlAttr2React('spellcheck'):
                             if (reactAttrValue === '""' || reactAttrValue === `"${ attrName }"`) {
                                 reactAttrValue = `${ startSymbol }true${ endSymbol }`;
                             } else {

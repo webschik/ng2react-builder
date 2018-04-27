@@ -42,12 +42,12 @@ angular.module('phoneDetail').component('phoneDetail', {
 
                                 <p>
                                     Search:
-                                    <input ng-model="$ctrl.query" />
+                                    <input value={$ctrl.query} />
                                 </p>
 
                                 <p>
                                     Sort by:
-                                    <select ng-model="$ctrl.orderProp">
+                                    <select value={$ctrl.orderProp}>
                                         <option value="name">Alphabetical</option>
                                         <option value="age">Newest</option>
                                     </select>

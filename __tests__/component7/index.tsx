@@ -127,7 +127,7 @@ class RealWorldComponent extends React.PureComponent<RealWorldComponentProps, Re
                                         <fieldset className="form-group">
                                             <input
                                                 className="form-control form-control-lg"
-                                                ng-model="$ctrl.article.title"
+                                                value={$ctrl.article.title}
                                                 type="text"
                                                 placeholder="Article Title"
                                             />
@@ -136,7 +136,7 @@ class RealWorldComponent extends React.PureComponent<RealWorldComponentProps, Re
                                         <fieldset className="form-group">
                                             <input
                                                 className="form-control"
-                                                ng-model="$ctrl.article.description"
+                                                value={$ctrl.article.description}
                                                 type="text"
                                                 placeholder="What's this article about?"
                                             />
@@ -146,7 +146,7 @@ class RealWorldComponent extends React.PureComponent<RealWorldComponentProps, Re
                                             <textarea
                                                 className="form-control"
                                                 rows={8}
-                                                ng-model="$ctrl.article.body"
+                                                value={$ctrl.article.body}
                                                 placeholder="Write your article (in markdown)">
                                                 {' '}
                                             </textarea>
@@ -157,7 +157,7 @@ class RealWorldComponent extends React.PureComponent<RealWorldComponentProps, Re
                                                 className="form-control"
                                                 type="text"
                                                 placeholder="Enter tags"
-                                                ng-model="$ctrl.tagField"
+                                                value={$ctrl.tagField}
                                                 onKeyUp={$event.keyCode == 13 && $ctrl.addTag}
                                             />
 
