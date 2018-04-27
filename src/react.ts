@@ -533,6 +533,57 @@ const possibleAngularNames: {[key: string]: string} = {
     }
 });
 
+export const htmlBooleanAttribute: string[] = [
+    'async',
+    'autocomplete',
+    'autofocus',
+    'autoplay',
+    'border',
+    'challenge',
+    'checked',
+    'compact',
+    'contenteditable',
+    'controls',
+    'default',
+    'defer',
+    'disabled',
+    'formNoValidate',
+    'frameborder',
+    'hidden',
+    'indeterminate',
+    'ismap',
+    'loop',
+    'multiple',
+    'muted',
+    'nohref',
+    'noresize',
+    'noshade',
+    'novalidate',
+    'nowrap',
+    'open',
+    'readonly',
+    'required',
+    'reversed',
+    'scoped',
+    'scrolling',
+    'seamless',
+    'selected',
+    'sortable',
+    'spellcheck',
+    'translate'
+];
+
+export const htmlNumericAttributes: string[] = [
+    'tabindex',
+    'rows',
+    'cols',
+    'min',
+    'max',
+    'step',
+    'maxlength',
+    'minlength'
+];
+
 export type ReactComponentType = 'stateless'|'stateful'|'pure';
 
 export const statelessComponentType: ReactComponentType = 'stateless';

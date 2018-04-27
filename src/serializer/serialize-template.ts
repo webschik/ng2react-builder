@@ -2,7 +2,7 @@ import {AST} from 'parse5/lib';
 import {AngularLexer, AngularParser, Angular, initAngular} from '../angular';
 import {AngularInterpolateOptions, TransformOptions} from '../index';
 import {ASTElement} from '../transformer/transform-template';
-import {htmlAttr2React, reactInterpolation} from '../react';
+import {htmlAttr2React, htmlBooleanAttribute, htmlNumericAttributes, reactInterpolation} from '../react';
 import cleanNgAttrExpression from './clean-ng-attr-expression';
 import hasMultipleSiblingElements from '../parser/has-multiple-sibling-elements';
 import interpolate from './interpolate';
@@ -274,30 +274,24 @@ export default function serializeTemplate (
                 }
 
                 if (reactAttrValue[0] !== startSymbol) {
-                    switch (attrName) {
-                        case htmlAttr2React('disabled'):
-                        case htmlAttr2React('autofocus'):
-                        case htmlAttr2React('required'):
-                        case htmlAttr2React('readonly'):
-                        case htmlAttr2React('spellcheck'):
-                            if (reactAttrValue === '""' || reactAttrValue === `"${ attrName }"`) {
-                                reactAttrValue = `${ startSymbol }true${ endSymbol }`;
-                            } else {
-                                reactAttrValue = startSymbol + reactAttrValue.slice(1, -1) + endSymbol;
-                            }
-                            break;
-                        case htmlAttr2React('tabindex'):
-                        case htmlAttr2React('rows'):
-                        case htmlAttr2React('cols'):
-                        case htmlAttr2React('min'):
-                        case htmlAttr2React('max'):
-                        case htmlAttr2React('step'):
-                        case htmlAttr2React('maxlength'):
-                        case htmlAttr2React('minlength'):
+                    const isBooleanAttr: boolean = htmlBooleanAttribute.some((attr: string) => {
+                        return attrName === htmlAttr2React(attr);
+                    });
+
+                    if (isBooleanAttr) {
+                        if (reactAttrValue === '""' || reactAttrValue === `"${ attrName }"`) {
+                            reactAttrValue = `${ startSymbol }true${ endSymbol }`;
+                        } else {
                             reactAttrValue = startSymbol + reactAttrValue.slice(1, -1) + endSymbol;
-                            break;
-                        default:
-                            //
+                        }
+                    } else {
+                        const isNumericAttr: boolean = htmlNumericAttributes.some((attr: string) => {
+                            return attrName === htmlAttr2React(attr);
+                        });
+
+                        if (isNumericAttr) {
+                            reactAttrValue = startSymbol + reactAttrValue.slice(1, -1) + endSymbol;
+                        }
                     }
                 }
             }

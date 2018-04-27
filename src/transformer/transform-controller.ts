@@ -1,3 +1,4 @@
+import {Decorator, Expression, Identifier} from 'babel-types';
 import * as types from 'babel-types';
 import * as babylon from 'babylon';
 import {ComponentOptions, TransformOptions} from '../index';
@@ -27,6 +28,10 @@ interface DirectivePath extends NodePath {
 
 interface FunctionExpressionPath extends NodePath {
     node: types.FunctionExpression;
+}
+
+interface FunctionDeclarationPath extends NodePath {
+    node: types.FunctionDeclaration;
 }
 
 interface ClassDeclarationPath extends NodePath {
@@ -153,6 +158,55 @@ export default function transformController (
         sourceType: 'module'
     });
     let programPath: NodePath;
+    const onFunction: (path: FunctionExpressionPath|FunctionDeclarationPath) => void = (path) => {
+        const {node} = path;
+        const isFunctionExpression: boolean = types.isFunctionExpression(path);
+
+        if (node.id && node.id.name === controllerName) {
+            const bodyPath: NodePath = path.get('body');
+
+            bodyPath.unshiftContainer('body', createComponentConstructorSuperCall());
+
+            const constructorMethod: types.ClassMethod = types.classMethod(
+                'constructor',
+                types.identifier('constructor'),
+                [],
+                bodyPath.node as types.BlockStatement
+            );
+            const [propsParamIdentifier] = createComponentConstructorParams({
+                typescript,
+                node: constructorMethod,
+                constructorParams: node.params
+            });
+            const classArguments: [types.Identifier, types.Expression, types.ClassBody, types.Decorator[]] = [
+                types.identifier(componentName),
+                createComponentSuperClass(componentType),
+                types.classBody([constructorMethod]),
+                []
+            ];
+
+            const componentClass: types.ClassExpression|types.ClassDeclaration = isFunctionExpression ?
+                types.classExpression.apply(types, classArguments) :
+                types.classDeclaration.apply(types, classArguments);
+            let propsTypeAnnotation: types.GenericTypeAnnotation;
+
+            componentClass.body.body.push(types.identifier(`//${ jsxResultKeyword }`) as any);
+
+            if (typescript) {
+                addComponentGlobalTypeAnnotations(programPath, [componentPropsInterface, componentStateInterface]);
+                const params = createComponentSuperTypeParameters([
+                    componentPropsInterface,
+                    componentStateInterface
+                ]);
+
+                propsTypeAnnotation = params.annotations[0];
+                componentClass.superTypeParameters = params.superTypeParameters;
+                propsParamIdentifier.typeAnnotation = types.typeAnnotation(propsTypeAnnotation);
+            }
+
+            path.replaceWith(componentClass);
+        }
+    };
 
     traverse(ast, {
         Program (path: NodePath) {
@@ -167,51 +221,8 @@ export default function transformController (
             }
         },
 
-        FunctionExpression (path: FunctionExpressionPath) {
-            const {node} = path;
-
-            if (node.id && node.id.name === controllerName) {
-                const bodyPath: NodePath = path.get('body');
-
-                bodyPath.unshiftContainer('body', createComponentConstructorSuperCall());
-
-                const constructorMethod: types.ClassMethod = types.classMethod(
-                    'constructor',
-                    types.identifier('constructor'),
-                    [],
-                    bodyPath.node as types.BlockStatement
-                );
-                const [propsParamIdentifier] = createComponentConstructorParams({
-                    typescript,
-                    node: constructorMethod,
-                    constructorParams: node.params
-                });
-
-                const componentClass: types.ClassExpression = types.classExpression(
-                    types.identifier(componentName),
-                    createComponentSuperClass(componentType),
-                    types.classBody([constructorMethod]),
-                    []
-                );
-                let propsTypeAnnotation: types.GenericTypeAnnotation;
-
-                componentClass.body.body.push(types.identifier(`//${ jsxResultKeyword }`) as any);
-
-                if (typescript) {
-                    addComponentGlobalTypeAnnotations(programPath, [componentPropsInterface, componentStateInterface]);
-                    const params = createComponentSuperTypeParameters([
-                        componentPropsInterface,
-                        componentStateInterface
-                    ]);
-
-                    propsTypeAnnotation = params.annotations[0];
-                    componentClass.superTypeParameters = params.superTypeParameters;
-                    propsParamIdentifier.typeAnnotation = types.typeAnnotation(propsTypeAnnotation);
-                }
-
-                path.replaceWith(componentClass);
-            }
-        },
+        FunctionDeclaration: onFunction,
+        FunctionExpression: onFunction,
 
         ClassDeclaration (path: ClassDeclarationPath) {
             const {node} = path;
