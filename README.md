@@ -10,8 +10,8 @@ to [React.js](https://reactjs.org/)
 
 ## Examples
 Check my [test components](__tests__) to see how this module works. There are:
-* [Angular1 template](__tests__/component5/template.html)
-* Generated component in [Typescript (TSX)](__tests__/component5/index.tsx)
+* Samples of [Angular1 templates](__tests__/component7/template.html) and [controllers](__tests__/component7/controller.js)
+* Generated React components in [Typescript (.tsx)](__tests__/component7/index.tsx)
 
 ## Usage
 ```shell
