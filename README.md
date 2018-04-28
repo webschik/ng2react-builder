@@ -231,6 +231,7 @@ export default class PhoneDetail extends React.PureComponent<PhoneDetailProps, P
 
 ```
 
+#### transform
 Method `transform` takes the next options:
 * `components` **[required]** - list of components options
     ```typescript
