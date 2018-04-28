@@ -11,7 +11,7 @@ export default function parseNgIterator (expression: string): AngularIteratorInf
     let match: RegExpMatchArray = expression.match(pattern);
 
     if (!match) {
-        throw new Error(`Invalid iterator expression ${ expression }`);
+        throw new Error(`Invalid iterator expression '${ expression }'`);
     }
 
     const [, iteratorExp, collectionExp, aliasAs]: string[] = match;
@@ -19,7 +19,7 @@ export default function parseNgIterator (expression: string): AngularIteratorInf
     match = iteratorExp.match(iteratorExpPattern);
 
     if (!match) {
-        throw new Error(`Invalid left-side expression ${ iteratorExp } in iterator ${ expression }`);
+        throw new Error(`Invalid left-side expression ${ iteratorExp } in iterator '${ expression }'`);
     }
 
     const valueIdentifier: string = match[3] || match[1];
@@ -27,7 +27,7 @@ export default function parseNgIterator (expression: string): AngularIteratorInf
 
     if (aliasAs && (!aliasPattern.test(aliasAs) || aliasReservedNamesPattern.test(aliasAs))) {
         throw new Error(
-            `Iterator alias ${ aliasAs } is invalid --- must be a valid JS identifier which is not a reserved name`
+            `Iterator alias ${ aliasAs } is invalid - must be a valid JS identifier which is not a reserved name`
         );
     }
 
@@ -35,14 +35,21 @@ export default function parseNgIterator (expression: string): AngularIteratorInf
     const collectionTransform: string[] = [];
 
     collectionPipe.slice(1).forEach((transform: string) => {
-        const [name, value] = transform.split(':');
+        const ngFilterData: string[] = transform.split(':');
+        const ngFilterName: string = ngFilterData[0].trim();
 
-        switch (name) {
+        switch (ngFilterName) {
             case 'filter':
-                collectionTransform.push(`.filter(${ value })`);
+                collectionTransform.push(`.filter(${ ngFilterData[1] })`);
                 break;
             case 'orderBy':
-                collectionTransform.push(`.sort(${ value })`);
+                collectionTransform.push(`.sort(${ ngFilterData[1] })`);
+                break;
+            case 'limitTo':
+                const limit: string = (ngFilterData[1] || '').trim();
+                const begin: string = (ngFilterData[2] || '').trim();
+
+                collectionTransform.push(`.slice(${ begin || 0 }, ${ begin || 0 } + ${ limit || 0 })`);
                 break;
             default:
                 //
