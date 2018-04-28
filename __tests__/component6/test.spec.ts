@@ -12,7 +12,7 @@ describe('transform()', () => {
                     react: {
                         typescript: true
                     },
-                    replaceDirectives: {
+                    directivesToTags: {
                         'ng-view': {
                             tagName: 'Switch'
                         }

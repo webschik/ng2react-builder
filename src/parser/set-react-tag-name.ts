@@ -1,26 +1,23 @@
-import {DirectiveReplaceInfo, TransformOptions} from '../index';
+import {DirectiveToTagInfo, TransformOptions} from '../index';
 import {ASTElement} from '../transformer/transform-template';
 import searchNgAttr from './search-ng-attr';
 
-export default function setReactTagName (el: ASTElement, {replaceDirectives}: TransformOptions) {
+export default function setReactTagName (el: ASTElement, {directivesToTags}: TransformOptions) {
     const {attribs, name} = el;
+    const directiveToTagInfo: DirectiveToTagInfo = searchNgAttr(name, directivesToTags);
 
-    if (attribs && replaceDirectives) {
-        const directiveInfo: DirectiveReplaceInfo = searchNgAttr(name, replaceDirectives);
+    if (directiveToTagInfo) {
+        el.reactTagName = directiveToTagInfo.tagName;
+        return;
+    }
 
-        if (directiveInfo) {
-            el.reactTagName = directiveInfo.tagName;
-            return;
-        }
+    for (const name in attribs) {
+        if (Object.prototype.hasOwnProperty.call(attribs, name)) {
+            const directiveToTagInfo: DirectiveToTagInfo = searchNgAttr(name, directivesToTags);
 
-        for (const name in attribs) {
-            if (Object.prototype.hasOwnProperty.call(attribs, name)) {
-                const directiveInfo: DirectiveReplaceInfo = searchNgAttr(name, replaceDirectives);
-
-                if (directiveInfo) {
-                    el.reactTagName = directiveInfo.tagName;
-                    return;
-                }
+            if (directiveToTagInfo) {
+                el.reactTagName = directiveToTagInfo.tagName;
+                return;
             }
         }
     }

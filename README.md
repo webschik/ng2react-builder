@@ -23,7 +23,7 @@ npm i -D ng2react-builder
 import {transform} from 'ng2react-builder';
 
 transform({
-    replaceDirectives: {
+    directivesToTags: {
         'my-icon': {
             tagName: 'MyReactIcon',
             valueProp: 'type'
@@ -253,7 +253,8 @@ Method `transform` takes the next options:
           }  
       ]
     ```
-* `replaceDirectives` **[optional]** - directives that you want to replace. It support tag names and attributes
+* `directivesToTags` **[optional]** - directives (custom tag names and attributes) that you want to transform to JSX tags. 
+* `directivesToTextNodes` **[optional]** - directives (** only attributes**) that you want to transform to child text nodes tags. 
 * `react` **[optional]** - React component options
     ```typescript
       {

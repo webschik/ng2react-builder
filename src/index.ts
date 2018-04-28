@@ -3,9 +3,14 @@ import transformController from './transformer/transform-controller';
 import transformTemplate from './transformer/transform-template';
 import {pureComponentType, ReactComponentType} from './react';
 
-export interface DirectiveReplaceInfo {
+export interface DirectiveToTagInfo {
     tagName: string;
     valueProp?: string;
+}
+
+export interface DirectiveToTextNodeInfo {
+    callee?: string;
+    calleeArguments?: string[];
 }
 
 export interface AngularInterpolateOptions {
@@ -32,8 +37,11 @@ export interface ComponentOptions {
 
 export interface TransformOptions {
     components: ComponentOptions[];
-    replaceDirectives?: {
-        [key: string]: DirectiveReplaceInfo;
+    directivesToTags?: {
+        [key: string]: DirectiveToTagInfo;
+    };
+    directivesToTextNodes?: {
+        [key: string]: DirectiveToTextNodeInfo;
     };
     react?: {
         typescript?: boolean;
@@ -60,7 +68,7 @@ export function transform (options: TransformOptions): GeneratedComponent[] {
         react: Object.assign({
             typescript: false
         }, options.react),
-        replaceDirectives: Object.assign({
+        directivesToTags: Object.assign({
             'ng-view': {
                 tagName: 'Switch'
             },
@@ -68,7 +76,8 @@ export function transform (options: TransformOptions): GeneratedComponent[] {
                 tagName: 'NavLink',
                 valueProp: 'to'
             }
-        }, options.replaceDirectives)
+        }, options.directivesToTags),
+        directivesToTextNodes: Object.assign({}, options.directivesToTextNodes)
     });
     const {typescript} = transformOptions.react;
 

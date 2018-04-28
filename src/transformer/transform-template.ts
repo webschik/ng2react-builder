@@ -35,7 +35,7 @@ export default function transformTemplate (
             const el: ASTElement = createElement.call(this, tagName, namespaceURI, attrs);
 
             setReactTagName(el, transformOptions);
-            parseNgAttrs(el, transformOptions);
+            parseNgAttrs(this, el, transformOptions);
 
             return el;
         },
@@ -43,7 +43,7 @@ export default function transformTemplate (
             adoptAttributes.call(this, el, attrs);
 
             setReactTagName(el, transformOptions);
-            parseNgAttrs(el, transformOptions);
+            parseNgAttrs(this, el, transformOptions);
         }
     });
     const fragment: AST.HtmlParser2.DocumentFragment = parseFragment(template.code, {

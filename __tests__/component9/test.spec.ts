@@ -2,26 +2,27 @@ import {transform, GeneratedComponent} from '../../src/index';
 import readFiles from '../read-files';
 
 describe('transform()', () => {
-    describe('component1', () => {
+    describe('component9', () => {
         it('should generate TSX component', () => {
             return readFiles(
-                './component1/template.html',
-                './component1/index.tsx'
+                './component9/template.html',
+                './component9/index.tsx'
             ).then(([template, componentCode]: string[]) => {
                 const generatedComponents: GeneratedComponent[] = transform({
-                    directivesToTags: {
-                        'my-icon': {
-                            tagName: 'Icon',
-                            valueProp: 'type'
-                        }
-                    },
                     react: {
                         typescript: true
+                    },
+                    directivesToTextNodes: {
+                        i18n: {
+                            callee: 'localize',
+                            calleeArguments: ['store']
+                        }
                     },
                     components: [
                         {
                             template: {code: template},
-                            componentName: 'TestComponent'
+                            componentName: 'TestComponent',
+                            componentType: 'stateless'
                         }
                     ]
                 });

@@ -1,4 +1,5 @@
-import {AngularInterpolateOptions, DirectiveReplaceInfo, TransformOptions} from '../index';
+import {AST} from 'parse5/lib';
+import {AngularInterpolateOptions, DirectiveToTagInfo, DirectiveToTextNodeInfo, TransformOptions} from '../index';
 import {angularAttr2React, htmlAttr2React} from '../react';
 import cleanNgAttrExpression from '../serializer/clean-ng-attr-expression';
 import parseNgIterator from './parse-ng-iterator';
@@ -7,9 +8,13 @@ import searchNgAttr from './search-ng-attr';
 
 const ngAttr: string = 'ng-attr-';
 
-export default function parseNgAttrs (el: ASTElement, transformOptions: TransformOptions): ASTElement {
+export default function parseNgAttrs (
+    treeAdapter: AST.TreeAdapter,
+    el: ASTElement,
+    transformOptions: TransformOptions
+): ASTElement {
     const {attribs} = el;
-    const {replaceDirectives} = transformOptions;
+    const {directivesToTags, directivesToTextNodes} = transformOptions;
     const filteredAttribs: {[key: string]: string} = Object.create(null);
     const ngInterpolateOptions: AngularInterpolateOptions =
         transformOptions.angular.interpolate as AngularInterpolateOptions;
@@ -59,17 +64,32 @@ export default function parseNgAttrs (el: ASTElement, transformOptions: Transfor
                         break;
                     }
 
+                    const directiveToTextNodeInfo: DirectiveToTextNodeInfo = searchNgAttr(name, directivesToTextNodes);
+
+                    if (directiveToTextNodeInfo) {
+                        let textContent: string = cleanNgAttrExpression(value, ngInterpolateOptions);
+
+                        if (directiveToTextNodeInfo.callee) {
+                            textContent = `${ directiveToTextNodeInfo.callee }(${
+                                (directiveToTextNodeInfo.calleeArguments || []).concat(textContent).join(', ')
+                            })`;
+                        }
+
+                        treeAdapter.insertText(
+                            el,
+                            `${ ngInterpolateOptions.startSymbol }${ textContent }${ ngInterpolateOptions.endSymbol }`
+                        );
+                        break;
+                    }
+
                     let reactAttrName: string = htmlAttr2React(name) || angularAttr2React(name) || name;
+                    const directiveToTagInfo: DirectiveToTagInfo = searchNgAttr(name, directivesToTags);
 
-                    if (replaceDirectives) {
-                        const directiveInfo: DirectiveReplaceInfo = searchNgAttr(name, replaceDirectives);
-
-                        if (directiveInfo) {
-                            if (value) {
-                                reactAttrName = directiveInfo.valueProp || 'value';
-                            } else {
-                                reactAttrName = void 0;
-                            }
+                    if (directiveToTagInfo) {
+                        if (value) {
+                            reactAttrName = directiveToTagInfo.valueProp || 'value';
+                        } else {
+                            reactAttrName = void 0;
                         }
                     }
 
