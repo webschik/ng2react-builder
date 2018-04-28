@@ -40,10 +40,10 @@ export default function parseNgIterator (expression: string): AngularIteratorInf
 
         switch (ngFilterName) {
             case 'filter':
-                collectionTransform.push(`.filter(${ ngFilterData[1] })`);
+                collectionTransform.push(`.filter(${ (ngFilterData[1] || '').trim() })`);
                 break;
             case 'orderBy':
-                collectionTransform.push(`.sort(${ ngFilterData[1] })`);
+                collectionTransform.push(`.sort(${ (ngFilterData[1] || '').trim() })`);
                 break;
             case 'limitTo':
                 const limit: string = (ngFilterData[1] || '').trim();
@@ -52,7 +52,9 @@ export default function parseNgIterator (expression: string): AngularIteratorInf
                 collectionTransform.push(`.slice(${ begin || 0 }, ${ begin || 0 } + ${ limit || 0 })`);
                 break;
             default:
-                //
+                collectionTransform.push(`.${ ngFilterName }(${
+                    ngFilterData.slice(1).map((param: string) => param.trim()).join(', ')
+                })`);
         }
     });
 

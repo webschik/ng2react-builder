@@ -57,5 +57,23 @@ describe('Parser', () => {
                 valueIdentifier: 'number'
             });
         });
+
+        it('should convert custom filter', () => {
+            expect(parseNgIterator('item in list | customFilter:param')).toEqual({
+                aliasAs: undefined,
+                collectionIdentifier: 'list',
+                collectionTransform: ['.customFilter(param)'],
+                keyIdentifier: undefined,
+                valueIdentifier: 'item'
+            });
+
+            expect(parseNgIterator('item in list | customFilter: param1: param2')).toEqual({
+                aliasAs: undefined,
+                collectionIdentifier: 'list',
+                collectionTransform: ['.customFilter(param1, param2)'],
+                keyIdentifier: undefined,
+                valueIdentifier: 'item'
+            });
+        });
     });
 });
