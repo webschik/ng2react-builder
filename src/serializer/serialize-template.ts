@@ -232,10 +232,6 @@ export default function serializeTemplate (
                     endSymbol;
             } else if (attrName === 'ng-model-options') {
                 reactAttrValue = startSymbol + reactAttrValue + endSymbol;
-            } else if (attrName === 'ng-bind') {
-                reactAttrValue = startSymbol +
-                    stringifyNgExpression(ngParser, cleanNgAttrExpression(reactAttrValue, ngInterpolateOptions)) +
-                    endSymbol;
             } else {
                 const interpolatedValue: string =
                     reactAttrValue &&

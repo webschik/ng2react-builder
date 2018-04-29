@@ -60,7 +60,9 @@ class RealWorldComponent extends React.PureComponent<RealWorldComponentProps, Re
             <div>
                 <nav className="navbar navbar-light">
                     <div className="container">
-                        <NavLink className="navbar-brand" to="app.home" ng-bind={lowercase($ctrl.appName)} />
+                        <NavLink className="navbar-brand" to="app.home">
+                            {lowercase($ctrl.appName)}
+                        </NavLink>
 
                         {/* Show this for logged out users */}
                         <ul show-authed="false" className="nav navbar-nav pull-xs-right">
@@ -191,7 +193,9 @@ class RealWorldComponent extends React.PureComponent<RealWorldComponentProps, Re
 
                 <footer>
                     <div className="container">
-                        <NavLink className="logo-font" to="app.home" ng-bind={lowercase($ctrl.appName)} />
+                        <NavLink className="logo-font" to="app.home">
+                            {lowercase($ctrl.appName)}
+                        </NavLink>
                         <span className="attribution">
                             © {date($ctrl.date, 'yyyy')}. An interactive learning project from{' '}
                             <a href="https://thinkster.io">Thinkster</a>. Code licensed under MIT.

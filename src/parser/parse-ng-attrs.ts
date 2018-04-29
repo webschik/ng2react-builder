@@ -51,6 +51,12 @@ export default function parseNgAttrs (
                 case 'ng-cloak':
                 case 'ng-app':
                     break;
+                case 'ng-bind':
+                    treeAdapter.insertText(
+                        el,
+                        `${ ngInterpolateOptions.startSymbol }${ value }${ ngInterpolateOptions.endSymbol }`
+                    );
+                    break;
                 default:
                     if (name === 'ng-trim' && value === 'false') {
                         break;
