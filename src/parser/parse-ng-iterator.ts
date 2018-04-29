@@ -32,31 +32,33 @@ export default function parseNgIterator (expression: string): AngularIteratorInf
     }
 
     const collectionPipe: string[] = collectionExp.split(collectionExpSeparator);
-    const collectionTransform: string[] = [];
+    const collectionTransform: string[] = collectionPipe
+        .slice(1)
+        .reduce((collectionTransform: string[], filter: string) => {
+            const ngFilterData: string[] = filter.split(':');
+            const ngFilterName: string = ngFilterData[0].trim();
 
-    collectionPipe.slice(1).forEach((transform: string) => {
-        const ngFilterData: string[] = transform.split(':');
-        const ngFilterName: string = ngFilterData[0].trim();
+            switch (ngFilterName) {
+                case 'filter':
+                    collectionTransform.push(`.filter(${ (ngFilterData[1] || '').trim() })`);
+                    break;
+                case 'orderBy':
+                    collectionTransform.push(`.sort(${ (ngFilterData[1] || '').trim() })`);
+                    break;
+                case 'limitTo':
+                    const limit: string = (ngFilterData[1] || '').trim();
+                    const begin: string = (ngFilterData[2] || '').trim();
 
-        switch (ngFilterName) {
-            case 'filter':
-                collectionTransform.push(`.filter(${ (ngFilterData[1] || '').trim() })`);
-                break;
-            case 'orderBy':
-                collectionTransform.push(`.sort(${ (ngFilterData[1] || '').trim() })`);
-                break;
-            case 'limitTo':
-                const limit: string = (ngFilterData[1] || '').trim();
-                const begin: string = (ngFilterData[2] || '').trim();
+                    collectionTransform.push(`.slice(${ begin || 0 }, ${ begin || 0 } + ${ limit || 0 })`);
+                    break;
+                default:
+                    collectionTransform.push(`.${ ngFilterName }(${
+                        ngFilterData.slice(1).map((param: string) => param.trim()).join(', ')
+                    })`);
+            }
 
-                collectionTransform.push(`.slice(${ begin || 0 }, ${ begin || 0 } + ${ limit || 0 })`);
-                break;
-            default:
-                collectionTransform.push(`.${ ngFilterName }(${
-                    ngFilterData.slice(1).map((param: string) => param.trim()).join(', ')
-                })`);
-        }
-    });
+            return collectionTransform;
+        }, []);
 
     return {
         valueIdentifier,
