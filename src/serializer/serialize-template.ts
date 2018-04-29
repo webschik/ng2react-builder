@@ -230,6 +230,8 @@ export default function serializeTemplate (
                         stringifyNgExpression(ngParser, cleanNgAttrExpression(reactAttrValue, ngInterpolateOptions))
                     }}` : '') +
                     endSymbol;
+            } else if (attrName === 'ng-model-options') {
+                reactAttrValue = startSymbol + reactAttrValue + endSymbol;
             } else {
                 const interpolatedValue: string =
                     reactAttrValue &&

@@ -67,13 +67,13 @@ class ContactDetail extends React.Component<ContactDetailProps, ContactDetailSta
                                 length-check=""
                                 required={true}
                                 onChange={$ctrl.updateContact}
-                                ng-model-options="{
-            'updateOn': 'default blur',
-            'debounce': {
-              'default': 250,
-              'blur': 0
-            }
-          }"
+                                ng-model-options={{
+                                    updateOn: 'default blur',
+                                    debounce: {
+                                        default: 250,
+                                        blur: 0
+                                    }
+                                }}
                                 value={$ctrl.contact.name}
                             />
                         </div>
@@ -89,13 +89,13 @@ class ContactDetail extends React.Component<ContactDetailProps, ContactDetailSta
                                 name="email"
                                 length-check=""
                                 onChange={$ctrl.updateContact}
-                                ng-model-options="{
-            'updateOn': 'default blur',
-            'debounce': {
-              'default': 250,
-              'blur': 0
-            }
-          }"
+                                ng-model-options={{
+                                    updateOn: 'default blur',
+                                    debounce: {
+                                        default: 250,
+                                        blur: 0
+                                    }
+                                }}
                                 value={$ctrl.contact.email}
                             />
                         </div>
@@ -106,13 +106,13 @@ class ContactDetail extends React.Component<ContactDetailProps, ContactDetailSta
                                 name="jobTitle"
                                 length-check=""
                                 onChange={$ctrl.updateContact}
-                                ng-model-options="{
-            'updateOn': 'default blur',
-            'debounce': {
-              'default': 250,
-              'blur': 0
-            }
-          }"
+                                ng-model-options={{
+                                    updateOn: 'default blur',
+                                    debounce: {
+                                        default: 250,
+                                        blur: 0
+                                    }
+                                }}
                                 value={$ctrl.contact.job}
                             />
                         </div>
@@ -123,13 +123,13 @@ class ContactDetail extends React.Component<ContactDetailProps, ContactDetailSta
                                 name="location"
                                 length-check=""
                                 onChange={$ctrl.updateContact}
-                                ng-model-options="{
-            'updateOn': 'default blur',
-            'debounce': {
-              'default': 250,
-              'blur': 0
-            }
-          }"
+                                ng-model-options={{
+                                    updateOn: 'default blur',
+                                    debounce: {
+                                        default: 250,
+                                        blur: 0
+                                    }
+                                }}
                                 value={$ctrl.contact.location}
                             />
                         </div>
@@ -143,13 +143,13 @@ class ContactDetail extends React.Component<ContactDetailProps, ContactDetailSta
                                 name="facebook"
                                 length-check=""
                                 onChange={$ctrl.updateContact}
-                                ng-model-options="{
-            'updateOn': 'default blur',
-            'debounce': {
-              'default': 250,
-              'blur': 0
-            }
-          }"
+                                ng-model-options={{
+                                    updateOn: 'default blur',
+                                    debounce: {
+                                        default: 250,
+                                        blur: 0
+                                    }
+                                }}
                                 value={$ctrl.contact.social.facebook}
                             />
                         </div>
@@ -160,13 +160,13 @@ class ContactDetail extends React.Component<ContactDetailProps, ContactDetailSta
                                 name="github"
                                 length-check=""
                                 onChange={$ctrl.updateContact}
-                                ng-model-options="{
-            'updateOn': 'default blur',
-            'debounce': {
-              'default': 250,
-              'blur': 0
-            }
-          }"
+                                ng-model-options={{
+                                    updateOn: 'default blur',
+                                    debounce: {
+                                        default: 250,
+                                        blur: 0
+                                    }
+                                }}
                                 value={$ctrl.contact.social.github}
                             />
                         </div>
@@ -177,13 +177,13 @@ class ContactDetail extends React.Component<ContactDetailProps, ContactDetailSta
                                 name="twitter"
                                 length-check=""
                                 onChange={$ctrl.updateContact}
-                                ng-model-options="{
-            'updateOn': 'default blur',
-            'debounce': {
-              'default': 250,
-              'blur': 0
-            }
-          }"
+                                ng-model-options={{
+                                    updateOn: 'default blur',
+                                    debounce: {
+                                        default: 250,
+                                        blur: 0
+                                    }
+                                }}
                                 value={$ctrl.contact.social.twitter}
                             />
                         </div>
@@ -194,13 +194,13 @@ class ContactDetail extends React.Component<ContactDetailProps, ContactDetailSta
                                 name="linkedin"
                                 length-check=""
                                 onChange={$ctrl.updateContact}
-                                ng-model-options="{
-            'updateOn': 'default blur',
-            'debounce': {
-              'default': 250,
-              'blur': 0
-            }
-          }"
+                                ng-model-options={{
+                                    updateOn: 'default blur',
+                                    debounce: {
+                                        default: 250,
+                                        blur: 0
+                                    }
+                                }}
                                 value={$ctrl.contact.social.linkedin}
                             />
                         </div>
