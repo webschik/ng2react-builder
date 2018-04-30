@@ -81,7 +81,7 @@ export default function stringifyNgExpression (ngParser: AngularParser, exp: str
         const ast = ngParser.ast(exp);
 
         return ast.body.reduce((result: string, {expression}) => {
-            return result += stringifyExpression(expression);
+            return result + stringifyExpression(expression);
         }, '');
     } catch (e) {
         //

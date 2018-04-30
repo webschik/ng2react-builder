@@ -11,15 +11,19 @@ import stringifyNgExpression from './stringify-ng-expression';
 const angular: Angular = initAngular();
 const Serializer = require('parse5/lib/serializer/index');
 const {NAMESPACES: NS, TAG_NAMES: $} = require('parse5/lib/common/html');
-const ampPattern: RegExp = /&amp;/g;
-const ltPattern: RegExp = /&lt;/g;
-const gtPattern: RegExp = /&gt;/g;
-const quotePattern: RegExp = /&quot;/g;
 const emptyParenthesesPattern: RegExp = /\(\)/g;
 const nonEmptyParenthesesPattern: RegExp = /([a-z])\(([^\)])/g;
 
 interface ASTSerializer {
     [key: string]: any;
+}
+
+function wrapAttrValue (attrValue: string) {
+    if (attrValue[0] === '"') {
+        return `${ reactInterpolation.startSymbol }${ attrValue }${ reactInterpolation.endSymbol }`;
+    }
+
+    return `"${ Serializer.escapeString(attrValue, true) }"`;
 }
 
 export default function serializeTemplate (
@@ -174,7 +178,7 @@ export default function serializeTemplate (
 
         for (let i = 0, attrsLength = attrs.length; i < attrsLength; i++) {
             const attr: AST.Default.Attribute = attrs[i];
-            let reactAttrValue: string = Serializer.escapeString(attr.value, true);
+            let reactAttrValue: string = attr.value;
             let attrName: string = attr.name;
             let isClassOddAttr: boolean;
             let isClassEvenAttr: boolean;
@@ -244,10 +248,6 @@ export default function serializeTemplate (
 
                     if (isEventHandlerAttr) {
                         attrValue = attrValue
-                            .replace(ampPattern, '&')
-                            .replace(ltPattern, '<')
-                            .replace(gtPattern, '>')
-                            .replace(quotePattern, '"')
                             .replace(emptyParenthesesPattern, '')
                             .replace(nonEmptyParenthesesPattern, '$1.bind(this, $2');
                     }
@@ -269,10 +269,10 @@ export default function serializeTemplate (
                     } else if (isEventHandlerAttr) {
                         reactAttrValue = startSymbol + attrValue + endSymbol;
                     } else {
-                        reactAttrValue = `"${ attrValue }"`;
+                        reactAttrValue = wrapAttrValue(reactAttrValue);
                     }
                 } else {
-                    reactAttrValue = `"${ interpolatedValue }"`;
+                    reactAttrValue = wrapAttrValue(interpolatedValue);
                 }
 
                 if (reactAttrValue[0] !== startSymbol) {
