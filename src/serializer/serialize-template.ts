@@ -13,17 +13,18 @@ const Serializer = require('parse5/lib/serializer/index');
 const {NAMESPACES: NS, TAG_NAMES: $} = require('parse5/lib/common/html');
 const emptyParenthesesPattern: RegExp = /\(\)/g;
 const nonEmptyParenthesesPattern: RegExp = /([a-z])\(([^\)])/g;
+const doubleQuote: string = '"';
 
 interface ASTSerializer {
     [key: string]: any;
 }
 
 function wrapAttrValue (attrValue: string) {
-    if (attrValue[0] === '"') {
-        return `${ reactInterpolation.startSymbol }${ attrValue }${ reactInterpolation.endSymbol }`;
+    if (attrValue[0] === doubleQuote && attrValue.slice(-1) === doubleQuote) {
+        return attrValue;
     }
 
-    return `"${ Serializer.escapeString(attrValue, true) }"`;
+    return doubleQuote + Serializer.escapeString(attrValue, true) + doubleQuote;
 }
 
 export default function serializeTemplate (
@@ -143,7 +144,9 @@ export default function serializeTemplate (
         }
 
         if (key) {
-            this.html += key.includes('${') ? ` key={\`${ key }\`}` : ` key="${ key }"`;
+            this.html += key.includes('${') ?
+                ` key={\`${ key }\`}` :
+                ` key=${ doubleQuote }${ key }${ doubleQuote} `;
         }
 
         this._serializeAttributes(node);
@@ -281,7 +284,9 @@ export default function serializeTemplate (
                     });
 
                     if (isBooleanAttr) {
-                        if (reactAttrValue === '""' || reactAttrValue === `"${ attrName }"`) {
+                        if (reactAttrValue === `${ doubleQuote }${ doubleQuote }` ||
+                            reactAttrValue === `${ doubleQuote }${ attrName }${ doubleQuote }`
+                        ) {
                             reactAttrValue = `${ startSymbol }true${ endSymbol }`;
                         } else {
                             reactAttrValue = startSymbol + reactAttrValue.slice(1, -1) + endSymbol;
