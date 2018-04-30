@@ -6,8 +6,12 @@ function stringifyCallExpression (expression: AngularASTExpression) {
     return `${ stringifyExpression(callee) }(${ args.map(stringifyExpression).join(', ') })`;
 }
 
-function stringifyMemberExpression (expression: AngularASTExpression) {
-    return `${ stringifyExpression(expression.object) }.${ stringifyExpression(expression.property) }`;
+function stringifyMemberExpression ({object, property, computed}: AngularASTExpression) {
+    if (computed) {
+        return `${ stringifyExpression(object) }[${ stringifyExpression(property) }]`;
+    }
+
+    return `${ stringifyExpression(object) }.${ stringifyExpression(property) }`;
 }
 
 function stringifyBinaryExpression ({left, operator, right}: AngularASTExpression) {

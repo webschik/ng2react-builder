@@ -5,7 +5,7 @@ export interface TestComponentProps {
 }
 
 const TestComponent: React.StatelessComponent<TestComponentProps> = (props) => {
-    return <span>{localize(store, translation.key)}</span>;
+    return <span>{localize(store, 'translation.key')}</span>;
 };
 
 export default TestComponent;

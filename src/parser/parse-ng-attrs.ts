@@ -73,7 +73,7 @@ export default function parseNgAttrs (
                     const directiveToTextNodeInfo: DirectiveToTextNodeInfo = searchNgAttr(name, directivesToTextNodes);
 
                     if (directiveToTextNodeInfo) {
-                        let textContent: string = cleanNgAttrExpression(value, ngInterpolateOptions);
+                        let textContent: string = `'${ cleanNgAttrExpression(value, ngInterpolateOptions) }'`;
 
                         if (directiveToTextNodeInfo.callee) {
                             textContent = `${ directiveToTextNodeInfo.callee }(${

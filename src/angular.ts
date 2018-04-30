@@ -30,6 +30,7 @@ export interface AngularASTExpression {
     test?: AngularASTExpression;
     alternate?: AngularASTExpression;
     consequent?: AngularASTExpression;
+    computed?: boolean;
     operator?: string;
 }
 
@@ -44,7 +45,7 @@ export interface Angular {
 }
 
 export function initAngular () {
-    const source: string = fs.readFileSync('node_modules/angular/angular.js', 'utf8') as string;
+    const source: string = fs.readFileSync(require.resolve('angular/angular.js'), 'utf8') as string;
     const externalAPICode: string = 'function publishExternalAPI(angular) {\n  extend(angular, {';
     const angularCode: string = source.replace(
         externalAPICode,
