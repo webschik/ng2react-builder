@@ -262,20 +262,20 @@ export default function serializeTemplate (
                             .replace(nonEmptyParenthesesPattern, '$1.bind(this, $2');
                     }
 
-                    const attrValueLastIndex: number = attrValue.length - 1;
+                    if (attrValue.includes(startSymbol) && attrValue.includes(endSymbol)) {
+                        const attrValueLastIndex: number = attrValue.length - 1;
 
-                    if (
-                        attrValue.indexOf(startSymbol) === 0 &&
-                        attrValue.lastIndexOf(startSymbol) === 0 &&
-                        attrValue.indexOf(endSymbol) === attrValueLastIndex &&
-                        attrValue.lastIndexOf(endSymbol) === attrValueLastIndex
-                    ) {
-                        reactAttrValue = attrValue;
-                    } else if (attrValue.includes(startSymbol) && attrValue.includes(endSymbol)) {
-                        reactAttrValue =
-                            `${ startSymbol }\`` +
-                            attrValue.replace(new RegExp(`\\${ startSymbol }`, 'g'), '${') +
-                            `\`${ endSymbol }`;
+                        if (
+                            attrValue.lastIndexOf(startSymbol) === 0 &&
+                            attrValue.lastIndexOf(endSymbol) === attrValueLastIndex
+                        ) {
+                            reactAttrValue = attrValue;
+                        } else {
+                            reactAttrValue =
+                                `${ startSymbol }\`` +
+                                attrValue.replace(new RegExp(`\\${ startSymbol }`, 'g'), '${') +
+                                `\`${ endSymbol }`;
+                        }
                     } else if (isEventHandlerAttr) {
                         reactAttrValue = startSymbol + attrValue + endSymbol;
                     } else {
@@ -326,7 +326,7 @@ export default function serializeTemplate (
         if (parentTn === $.STYLE || parentTn === $.SCRIPT || parentTn === $.XMP || parentTn === $.IFRAME ||
             parentTn === $.NOEMBED || parentTn === $.NOFRAMES || parentTn === $.PLAINTEXT || parentTn === $.NOSCRIPT) {
 
-            this.html += content;
+            this.html += `${ reactInterpolation.startSymbol }\`${ content }\`${ reactInterpolation.endSymbol }`;
         } else {
             const escapedContent: string = Serializer.escapeString(content, false);
 

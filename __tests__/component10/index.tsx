@@ -7,6 +7,11 @@ export interface TestComponentProps {
 const TestComponent: React.StatelessComponent<TestComponentProps> = (props) => {
     return (
         <div>
+            <style>{`
+        pre {
+            color: red;
+        }
+    `}</style>
             <p dangerouslySetInnerHTML={{__html: 'myHTML'}} />
             <pre dangerouslySetInnerHTML={{__html: `${salutation} ${name}!`}} />
             <pre dangerouslySetInnerHTML={{__html: "Hello 'world'!"}} />
