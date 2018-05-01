@@ -232,11 +232,18 @@ export default function serializeTemplate (
                     stringifyNgExpression(ngParser, cleanNgAttrExpression(reactAttrValue, ngInterpolateOptions)) +
                     endSymbol;
             } else if (attrName === 'dangerouslySetInnerHTML') {
-                reactAttrValue = startSymbol +
-                    (reactAttrValue ? `{__html: ${
-                        stringifyNgExpression(ngParser, cleanNgAttrExpression(reactAttrValue, ngInterpolateOptions))
-                    }}` : '') +
-                    endSymbol;
+                reactAttrValue = interpolate(ngParser, reactAttrValue, transformOptions);
+
+                if (reactAttrValue.includes(startSymbol) && reactAttrValue.includes(endSymbol)) {
+                    reactAttrValue =
+                        '`' +
+                        reactAttrValue.replace(new RegExp(`\\${ startSymbol }`, 'g'), '${') +
+                        '`';
+                } else {
+                    reactAttrValue = wrapAttrValue(reactAttrValue);
+                }
+
+                reactAttrValue = `${ startSymbol }{__html: ${ reactAttrValue }}${ endSymbol }`;
             } else if (attrName === 'ng-model-options') {
                 reactAttrValue = startSymbol + reactAttrValue + endSymbol;
             } else {
