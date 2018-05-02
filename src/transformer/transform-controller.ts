@@ -155,7 +155,8 @@ export default function transformController (
     const componentStateInterface: string = `${ componentName }State`;
     const controllerName: string = controller.name;
     const ast: types.File = babylon.parse(controller.code, {
-        sourceType: 'module'
+        sourceType: 'module',
+        plugins: ['flow']
     });
     let programPath: NodePath;
     const onFunction: (path: FunctionExpressionPath|FunctionDeclarationPath) => void = (path) => {
