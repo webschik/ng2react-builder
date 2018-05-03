@@ -581,7 +581,9 @@ export const htmlNumericAttributes: string[] = [
     'max',
     'step',
     'maxlength',
-    'minlength'
+    'minlength',
+    'colspan',
+    'rowspan'
 ];
 
 export type ReactComponentType = 'stateless'|'stateful'|'pure';
