@@ -38,11 +38,11 @@ export default function parseNgAttrs (
                     el.condition += el.condition ? ` && ${ attrValue }` : attrValue;
                     break;
                 case 'ng-repeat':
-                    el.iteratorInfo = parseNgIterator(value);
+                    el.iteratorInfo = parseNgIterator(value, ngInterpolateOptions);
                     el.isIteratorEnd = true;
                     break;
                 case 'ng-repeat-start':
-                    el.iteratorInfo = parseNgIterator(value);
+                    el.iteratorInfo = parseNgIterator(value, ngInterpolateOptions);
                     el.isGroupIterator = true;
                     break;
                 case 'ng-repeat-end':

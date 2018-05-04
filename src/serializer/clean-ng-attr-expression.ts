@@ -1,8 +1,11 @@
 import {AngularInterpolateOptions} from '../index';
 
-export default function cleanNgAttrExpression (expression: string, interpolate: AngularInterpolateOptions): string {
+export default function cleanNgAttrExpression (
+    expression: string,
+    ngInterpolateOptions: AngularInterpolateOptions
+): string {
     return expression
         .trim()
-        .replace(interpolate.bindOnce, '')
+        .replace(ngInterpolateOptions.bindOnce, '')
         .replace(/;$/, '');
 }

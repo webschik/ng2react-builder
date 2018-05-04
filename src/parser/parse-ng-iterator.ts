@@ -1,3 +1,5 @@
+import {AngularInterpolateOptions} from '../index';
+import cleanNgAttrExpression from '../serializer/clean-ng-attr-expression';
 import {AngularIteratorInfo} from '../transformer/transform-template';
 
 const pattern: RegExp = /^\s*([\s\S]+?)\s+in\s+([\s\S]+?)(?:\s+as\s+([\s\S]+?))?(?:\s+track\s+by\s+([\s\S]+?))?\s*$/;
@@ -7,7 +9,10 @@ const aliasReservedNamesPattern: RegExp =
     /^(null|undefined|this|\$index|\$first|\$middle|\$last|\$even|\$odd|\$parent|\$root|\$id)$/;
 const collectionExpSeparator: RegExp = /\s*\|\s*/;
 
-export default function parseNgIterator (expression: string): AngularIteratorInfo {
+export default function parseNgIterator (
+    expression: string,
+    ngInterpolateOptions: AngularInterpolateOptions
+): AngularIteratorInfo {
     let match: RegExpMatchArray = expression.match(pattern);
 
     if (!match) {
@@ -32,6 +37,7 @@ export default function parseNgIterator (expression: string): AngularIteratorInf
     }
 
     const collectionPipe: string[] = collectionExp.split(collectionExpSeparator);
+    const collectionIdentifier: string = collectionPipe[0];
     const collectionTransform: string[] = collectionPipe
         .slice(1)
         .reduce((collectionTransform: string[], filter: string) => {
@@ -63,7 +69,7 @@ export default function parseNgIterator (expression: string): AngularIteratorInf
     return {
         valueIdentifier,
         keyIdentifier,
-        collectionIdentifier: collectionPipe[0],
+        collectionIdentifier: collectionIdentifier && cleanNgAttrExpression(collectionIdentifier, ngInterpolateOptions),
         collectionTransform,
         aliasAs
     };

@@ -257,6 +257,9 @@ export default function serializeTemplate (
                     let attrValue: string = cleanNgAttrExpression(interpolatedValue, ngInterpolateOptions);
 
                     if (isEventHandlerAttr) {
+                        const firstOpenedParenthesisIndex: number = attrValue.indexOf('(');
+                        const lastOpenedParenthesisIndex: number = attrValue.lastIndexOf('(');
+
                         attrValue = attrValue
                             .replace(emptyParenthesesPattern, '')
                             .replace(nonEmptyParenthesesPattern, '$1.bind(this, $2');

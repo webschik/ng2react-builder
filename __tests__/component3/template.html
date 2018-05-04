@@ -1,4 +1,4 @@
-<div ng-repeat="order in orders track by $index">
+<div ng-repeat="order in ::orders track by $index">
     <span>{{order.name}}</span>
 </div>
 <header data-ng-repeat-start="type in types as list">
