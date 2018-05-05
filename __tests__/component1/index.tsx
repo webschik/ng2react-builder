@@ -17,7 +17,10 @@ export default class TestComponent extends React.PureComponent<TestComponentProp
                     className="product-info-icon_star"
                     title={localize('translation.label.504')}
                     data-tooltip={`Product name: ${productInfo.name}`}
-                    onClick={actions.toggleStatus}>
+                    onClick={(event: React.SyntheticEvent<HTMLElement>) => {
+                        event.stopPropagation();
+                        actions.toggleStatus(getStatus());
+                    }}>
                     {formData.isFavourite ? <Icon type="star" /> : null}
                     {!formData.isFavourite ? <Icon type="star-o" /> : null}
                     {code} | {productInfo.name}

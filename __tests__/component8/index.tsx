@@ -66,7 +66,9 @@ class ContactDetail extends React.Component<ContactDetailProps, ContactDetailSta
                                 name="name"
                                 length-check=""
                                 required={true}
-                                onChange={$ctrl.updateContact}
+                                onChange={() => {
+                                    $ctrl.updateContact();
+                                }}
                                 ng-model-options={{
                                     updateOn: 'default blur',
                                     debounce: {
@@ -88,7 +90,9 @@ class ContactDetail extends React.Component<ContactDetailProps, ContactDetailSta
                                 type="email"
                                 name="email"
                                 length-check=""
-                                onChange={$ctrl.updateContact}
+                                onChange={() => {
+                                    $ctrl.updateContact();
+                                }}
                                 ng-model-options={{
                                     updateOn: 'default blur',
                                     debounce: {
@@ -105,7 +109,9 @@ class ContactDetail extends React.Component<ContactDetailProps, ContactDetailSta
                                 type="text"
                                 name="jobTitle"
                                 length-check=""
-                                onChange={$ctrl.updateContact}
+                                onChange={() => {
+                                    $ctrl.updateContact();
+                                }}
                                 ng-model-options={{
                                     updateOn: 'default blur',
                                     debounce: {
@@ -122,7 +128,9 @@ class ContactDetail extends React.Component<ContactDetailProps, ContactDetailSta
                                 type="text"
                                 name="location"
                                 length-check=""
-                                onChange={$ctrl.updateContact}
+                                onChange={() => {
+                                    $ctrl.updateContact();
+                                }}
                                 ng-model-options={{
                                     updateOn: 'default blur',
                                     debounce: {
@@ -142,7 +150,9 @@ class ContactDetail extends React.Component<ContactDetailProps, ContactDetailSta
                                 type="text"
                                 name="facebook"
                                 length-check=""
-                                onChange={$ctrl.updateContact}
+                                onChange={() => {
+                                    $ctrl.updateContact();
+                                }}
                                 ng-model-options={{
                                     updateOn: 'default blur',
                                     debounce: {
@@ -159,7 +169,9 @@ class ContactDetail extends React.Component<ContactDetailProps, ContactDetailSta
                                 type="text"
                                 name="github"
                                 length-check=""
-                                onChange={$ctrl.updateContact}
+                                onChange={() => {
+                                    $ctrl.updateContact();
+                                }}
                                 ng-model-options={{
                                     updateOn: 'default blur',
                                     debounce: {
@@ -176,7 +188,9 @@ class ContactDetail extends React.Component<ContactDetailProps, ContactDetailSta
                                 type="text"
                                 name="twitter"
                                 length-check=""
-                                onChange={$ctrl.updateContact}
+                                onChange={() => {
+                                    $ctrl.updateContact();
+                                }}
                                 ng-model-options={{
                                     updateOn: 'default blur',
                                     debounce: {
@@ -193,7 +207,9 @@ class ContactDetail extends React.Component<ContactDetailProps, ContactDetailSta
                                 type="text"
                                 name="linkedin"
                                 length-check=""
-                                onChange={$ctrl.updateContact}
+                                onChange={() => {
+                                    $ctrl.updateContact();
+                                }}
                                 ng-model-options={{
                                     updateOn: 'default blur',
                                     debounce: {
@@ -213,14 +229,20 @@ class ContactDetail extends React.Component<ContactDetailProps, ContactDetailSta
                             <button
                                 className="contact__action button"
                                 disabled={contactDetailForm.$invalid}
-                                onClick={$ctrl.saveContact}>
+                                onClick={() => {
+                                    $ctrl.saveContact();
+                                }}>
                                 Create contact
                             </button>
                         </div>
                     ) : null}
                     {!$ctrl.isNewContact ? (
                         <div>
-                            <button className="contact__action button delete" onClick={$ctrl.deleteContact}>
+                            <button
+                                className="contact__action button delete"
+                                onClick={() => {
+                                    $ctrl.deleteContact();
+                                }}>
                                 Delete contact
                             </button>
                         </div>

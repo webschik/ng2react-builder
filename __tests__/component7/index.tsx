@@ -160,7 +160,9 @@ class RealWorldComponent extends React.PureComponent<RealWorldComponentProps, Re
                                                 type="text"
                                                 placeholder="Enter tags"
                                                 value={$ctrl.tagField}
-                                                onKeyUp={$event.keyCode == 13 && $ctrl.addTag}
+                                                onKeyUp={(event: React.SyntheticEvent<HTMLElement>) => {
+                                                    event.keyCode == 13 && $ctrl.addTag();
+                                                }}
                                             />
 
                                             <div className="tag-list">
@@ -169,7 +171,9 @@ class RealWorldComponent extends React.PureComponent<RealWorldComponentProps, Re
                                                         <span key={`item-${index}`} className="tag-default tag-pill">
                                                             <i
                                                                 className="ion-close-round"
-                                                                onClick={$ctrl.removeTag.bind(this, tag)}
+                                                                onClick={() => {
+                                                                    $ctrl.removeTag(tag);
+                                                                }}
                                                             />
                                                             {tag}
                                                         </span>
@@ -181,7 +185,9 @@ class RealWorldComponent extends React.PureComponent<RealWorldComponentProps, Re
                                         <button
                                             className="btn btn-lg pull-xs-right btn-primary"
                                             type="button"
-                                            onClick={$ctrl.submit}>
+                                            onClick={() => {
+                                                $ctrl.submit();
+                                            }}>
                                             Publish Article
                                         </button>
                                     </fieldset>

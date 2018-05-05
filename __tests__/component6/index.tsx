@@ -16,7 +16,11 @@ export default class PhoneDetail extends React.PureComponent<PhoneDetailProps, P
                 <section className="todoapp">
                     <header className="header">
                         <h1>todos</h1>
-                        <form className="todo-form" onSubmit={addTodo}>
+                        <form
+                            className="todo-form"
+                            onSubmit={() => {
+                                addTodo();
+                            }}>
                             <input
                                 className="new-todo"
                                 placeholder="What needs to be done?"
@@ -33,7 +37,9 @@ export default class PhoneDetail extends React.PureComponent<PhoneDetailProps, P
                                 className="toggle-all"
                                 type="checkbox"
                                 value={allChecked}
-                                onClick={markAll.bind(this, allChecked)}
+                                onClick={() => {
+                                    markAll(allChecked);
+                                }}
                             />
                             <label htmlFor="toggle-all">Mark all as complete</label>
                             <ul className="todo-list">
@@ -47,17 +53,34 @@ export default class PhoneDetail extends React.PureComponent<PhoneDetailProps, P
                                                     className="toggle"
                                                     type="checkbox"
                                                     value={todo.completed}
-                                                    onChange={toggleCompleted.bind(this, todo)}
+                                                    onChange={() => {
+                                                        toggleCompleted(todo);
+                                                    }}
                                                 />
-                                                <label onDoubleClick={editTodo.bind(this, todo)}>{todo.title}</label>
-                                                <button className="destroy" onClick={removeTodo.bind(this, todo)} />
+                                                <label
+                                                    onDoubleClick={() => {
+                                                        editTodo(todo);
+                                                    }}>
+                                                    {todo.title}
+                                                </label>
+                                                <button
+                                                    className="destroy"
+                                                    onClick={() => {
+                                                        removeTodo(todo);
+                                                    }}
+                                                />
                                             </div>
-                                            <form onSubmit={saveEdits.bind(this, todo, 'submit')}>
+                                            <form
+                                                onSubmit={() => {
+                                                    saveEdits(todo, 'submit');
+                                                }}>
                                                 <input
                                                     className="edit"
                                                     value={todo.title}
                                                     todo-escape="revertEdits(todo)"
-                                                    onBlur={saveEdits.bind(this, todo, 'blur')}
+                                                    onBlur={() => {
+                                                        saveEdits(todo, 'blur');
+                                                    }}
                                                     todo-focus="todo == editedTodo"
                                                 />
                                             </form>
@@ -91,7 +114,11 @@ export default class PhoneDetail extends React.PureComponent<PhoneDetailProps, P
                                 </li>
                             </ul>
                             {completedCount ? (
-                                <button className="clear-completed" onClick={clearCompletedTodos}>
+                                <button
+                                    className="clear-completed"
+                                    onClick={() => {
+                                        clearCompletedTodos();
+                                    }}>
                                     Clear completed
                                 </button>
                             ) : null}

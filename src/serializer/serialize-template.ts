@@ -11,8 +11,7 @@ import stringifyNgExpression from './stringify-ng-expression';
 const angular: Angular = initAngular();
 const Serializer = require('parse5/lib/serializer/index');
 const {NAMESPACES: NS, TAG_NAMES: $} = require('parse5/lib/common/html');
-const emptyParenthesesPattern: RegExp = /\(\)/g;
-const nonEmptyParenthesesPattern: RegExp = /([a-z])\(([^\)])/g;
+const ngEventPattern: RegExp = /\$event/g;
 const doubleQuote: string = '"';
 
 interface ASTSerializer {
@@ -254,18 +253,18 @@ export default function serializeTemplate (
 
                 // has interpolation or event handler
                 if (interpolatedValue && (reactAttrValue !== interpolatedValue || isEventHandlerAttr)) {
-                    let attrValue: string = cleanNgAttrExpression(interpolatedValue, ngInterpolateOptions);
+                    const attrValue: string = cleanNgAttrExpression(interpolatedValue, ngInterpolateOptions);
 
                     if (isEventHandlerAttr) {
-                        const firstOpenedParenthesisIndex: number = attrValue.indexOf('(');
-                        const lastOpenedParenthesisIndex: number = attrValue.lastIndexOf('(');
+                        const newAttrValue: string = attrValue.replace(ngEventPattern, 'event');
+                        const args: string[] = [];
 
-                        attrValue = attrValue
-                            .replace(emptyParenthesesPattern, '')
-                            .replace(nonEmptyParenthesesPattern, '$1.bind(this, $2');
-                    }
+                        if (newAttrValue !== attrValue) {
+                            args.push(`event${ react.typescript ? ': React.SyntheticEvent<HTMLElement>' : '' }`);
+                        }
 
-                    if (attrValue.includes(startSymbol) && attrValue.includes(endSymbol)) {
+                        reactAttrValue = `${ startSymbol }(${ args.join(', ') }) => {${ newAttrValue }}${ endSymbol }`;
+                    } else if (attrValue.includes(startSymbol) && attrValue.includes(endSymbol)) {
                         const attrValueLastIndex: number = attrValue.length - 1;
 
                         if (
