@@ -41,6 +41,7 @@ class ContactDetail extends React.Component<ContactDetailProps, ContactDetailSta
             ctrl.contact.tag = event.tag;
             ctrl.updateContact();
         };
+        return this;
     }
 
     render() {

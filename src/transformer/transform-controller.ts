@@ -58,10 +58,6 @@ function createInterfaceDeclaration (name: string) {
     return `export interface ${ name } {[key: string]: any}`;
 }
 
-function removeNode (node: ts.Node): Replacement {
-    return Replacement.delete(node.getStart(), node.getEnd());
-}
-
 export default function transformController (
     componentOptions: ComponentOptions,
     jsxResult: string,
@@ -108,15 +104,6 @@ export default function transformController (
 
     function traverse (node: ts.Node, replacements: Replacement[]) {
         switch (node.kind) {
-            case ts.SyntaxKind.ReturnStatement: {
-                const {parent} = node;
-
-                if (parent && isControllerDeclaration(parent)) {
-                    replacements.push(removeNode(node));
-                }
-
-                break;
-            }
             case ts.SyntaxKind.ImportDeclaration: {
                 const {parent} = node;
 
