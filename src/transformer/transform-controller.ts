@@ -1,147 +1,65 @@
-import {Decorator, Expression, Identifier} from 'babel-types';
-import * as types from 'babel-types';
-import * as babylon from 'babylon';
+import * as ts from 'typescript';
 import {ComponentOptions, TransformOptions} from '../index';
-import {ReactComponentType, statefulComponentType} from '../react';
 
-const traverse = require('@babel/traverse').default;
-const generate = require('@babel/generator').default;
-const jsxResultKeyword: string = 'JSX_RESULT';
-const jsxResultKeywordPattern: RegExp = new RegExp(`\\/\\/${ jsxResultKeyword }`, 'g');
+type FunctionNode = ts.FunctionDeclaration|ts.FunctionExpression;
+type ClassNode = ts.ClassDeclaration|ts.ClassExpression;
 
-interface NodePath {
-    node: types.Node;
-    scope: {
-        rename (from: string, to: string): void;
-    };
-    remove (): void;
-    replaceWith (node: types.Node): void;
-    insertBefore (nodes: types.Node[]): void;
-    get (name: string): any;
-    unshiftContainer (type: string, content: types.Node|types.Node[]): this;
-    pushContainer (type: string, content: types.Node|types.Node[]): this;
+class Replacement {
+    constructor (readonly start: number, readonly end: number, readonly text = '', readonly priority = 0) {
+    }
+
+    static insert (pos: number, text: string, priority = 0) {
+        return new Replacement(pos, pos, text, priority);
+    }
+
+    static delete (start: number, end: number) {
+        return new Replacement(start, end, '');
+    }
 }
 
-interface DirectivePath extends NodePath {
-    node: types.Directive;
-}
-
-interface FunctionExpressionPath extends NodePath {
-    node: types.FunctionExpression;
-}
-
-interface FunctionDeclarationPath extends NodePath {
-    node: types.FunctionDeclaration;
-}
-
-interface ClassDeclarationPath extends NodePath {
-    node: types.ClassDeclaration;
-}
-
-interface ClassMethodNodePath extends NodePath {
-    node: types.ClassMethod;
-}
-
-function createGeneralInterfaceDeclaration (interfaceName: string) {
-    return types.interfaceDeclaration(
-        types.identifier(interfaceName),
-        null,
-        [],
-        types.objectTypeAnnotation(
-            [],
-            [
-                types.objectTypeIndexer(
-                    types.identifier('key'),
-                    types.stringTypeAnnotation(),
-                    types.anyTypeAnnotation()
-                )
-            ],
-            []
-        )
-    );
-}
-
-function addComponentGlobalTypeAnnotations (programPath: NodePath, interfaces: string[]) {
-    const nodes: types.Node[] = interfaces.reduce((nodes: types.Node[], interfaceName: string) => {
-        return nodes.concat([
-            types.exportNamedDeclaration(createGeneralInterfaceDeclaration(interfaceName), []),
-            types.identifier('\n')
-        ]);
-    }, [
-        types.identifier('\n')
-    ]);
-    const programChildren: NodePath[] = programPath.get('body');
-    const firstNonImportDeclaration: NodePath = programChildren.find((path: NodePath) => {
-        return !types.isImportDeclaration(path);
+// https://github.com/urish/typewiz/blob/master/packages/typewiz-core/src/replacement.ts
+function applyReplacements (source: string, replacements: Replacement[]) {
+    replacements = replacements.sort((r1, r2) => {
+        return r2.end !== r1.end ?
+            r2.end - r1.end :
+            r1.start !== r2.start ?
+                r2.start - r1.start :
+                r1.priority - r2.priority;
     });
 
-    if (!firstNonImportDeclaration) {
-        programPath.pushContainer('body', nodes);
-    } else {
-        firstNonImportDeclaration.insertBefore(nodes);
-    }
-}
-
-function createComponentSuperTypeParameters (interfaces: string[]) {
-    const annotations: types.GenericTypeAnnotation[] = interfaces.map((interfaceName: string) => {
-        return types.genericTypeAnnotation(types.identifier(interfaceName));
-    });
-
-    return {
-        annotations,
-        superTypeParameters: types.typeParameterInstantiation(annotations)
-    };
-}
-
-function createComponentSuperClass (componentType: ReactComponentType) {
-    return types.memberExpression(
-        types.identifier('React'),
-        types.identifier(componentType === statefulComponentType ? 'Component' : 'PureComponent')
-    );
-}
-
-function createComponentConstructorParams ({typescript, node, constructorParams}: {
-    typescript: boolean;
-    node: types.ClassMethod;
-    constructorParams: types.LVal[]
-}) {
-    const propsParamIdentifier: types.Identifier = types.identifier('props');
-    const contextParamIdentifier: types.Identifier = types.identifier('context');
-
-    if (typescript) {
-        (contextParamIdentifier as any).optional = true;
-        contextParamIdentifier.typeAnnotation = types.typeAnnotation(types.anyTypeAnnotation());
+    for (const replacement of replacements) {
+        source = source.slice(0, replacement.start) + replacement.text + source.slice(replacement.end);
     }
 
-    const params: types.Identifier[] = [
-        propsParamIdentifier,
-        contextParamIdentifier
-    ];
-    const oldParams: types.LVal[] = constructorParams.slice(0);
-
-    node.params.length = 0;
-    node.params.unshift(...params);
-
-    if (oldParams[0]) {
-        node.params.push(types.identifier('/*'), ...oldParams, types.identifier('*/'));
-    }
-
-    return params;
+    return source;
 }
 
-function createComponentConstructorSuperCall (): types.Node[] {
-    return [
-        types.expressionStatement(
-            types.callExpression(
-                types.identifier('super'),
-                [
-                    types.identifier('props'),
-                    types.identifier('context')
-                ]
-            )
-        ),
-        types.identifier('\n')
-    ];
+function createClassDeclaration (
+    node: ClassNode|FunctionNode,
+    componentPropsInterface: string,
+    componentStateInterface: string,
+    {componentType, componentName}: ComponentOptions,
+    {react: {typescript}}: TransformOptions
+): string {
+    const {heritageClauses} = node as ClassNode;
+    let heritageClause: string = '';
+
+    if (!heritageClauses || !heritageClauses[0]) {
+        heritageClause = ` extends React.${ componentType === 'pure' ? 'PureComponent' : 'Component' }${ typescript ?
+            `<${ componentPropsInterface }, ${ componentStateInterface }>` :
+            ''
+            }`;
+    }
+
+    return `class ${ componentName } ${ heritageClause }`;
+}
+
+function createInterfaceDeclaration (name: string) {
+    return `export interface ${ name } {[key: string]: any}`;
+}
+
+function removeNode (node: ts.Node): Replacement {
+    return Replacement.delete(node.getStart(), node.getEnd());
 }
 
 export default function transformController (
@@ -150,138 +68,156 @@ export default function transformController (
     transformOptions: TransformOptions
 ): string {
     const {typescript} = transformOptions.react;
-    const {controller, componentName, componentType} = componentOptions;
+    const {controller, componentName} = componentOptions;
     const componentPropsInterface: string = `${ componentName }Props`;
     const componentStateInterface: string = `${ componentName }State`;
     const controllerName: string = controller.name;
-    const ast: types.File = babylon.parse(controller.code, {
-        sourceType: 'module',
-        plugins: ['flow']
-    });
-    let programPath: NodePath;
-    const onFunction: (path: FunctionExpressionPath|FunctionDeclarationPath) => void = (path) => {
-        const {node} = path;
-        const isFunctionExpression: boolean = types.isFunctionExpression(path);
+    const sourceCode: string = controller.code;
+    const replacements: Replacement[] = [];
+    const sourceFile: ts.SourceFile = ts.createSourceFile(
+        'controller.ts',
+        sourceCode,
+        ts.ScriptTarget.Latest,
+        true
+    );
+    let lastRootImportEnd: number;
 
-        if (node.id && node.id.name === controllerName) {
-            const bodyPath: NodePath = path.get('body');
+    function createConstructorDeclaration (parameters: ReadonlyArray<ts.ParameterDeclaration>) {
+        let parametersStart: number;
+        let parametersEnd: number;
 
-            bodyPath.unshiftContainer('body', createComponentConstructorSuperCall());
-
-            const constructorMethod: types.ClassMethod = types.classMethod(
-                'constructor',
-                types.identifier('constructor'),
-                [],
-                bodyPath.node as types.BlockStatement
-            );
-            const [propsParamIdentifier] = createComponentConstructorParams({
-                typescript,
-                node: constructorMethod,
-                constructorParams: node.params
-            });
-            const classArguments: [types.Identifier, types.Expression, types.ClassBody, types.Decorator[]] = [
-                types.identifier(componentName),
-                createComponentSuperClass(componentType),
-                types.classBody([constructorMethod]),
-                []
-            ];
-
-            const componentClass: types.ClassExpression|types.ClassDeclaration = isFunctionExpression ?
-                types.classExpression.apply(types, classArguments) :
-                types.classDeclaration.apply(types, classArguments);
-            let propsTypeAnnotation: types.GenericTypeAnnotation;
-
-            componentClass.body.body.push(types.identifier(`//${ jsxResultKeyword }`) as any);
-
-            if (typescript) {
-                addComponentGlobalTypeAnnotations(programPath, [componentPropsInterface, componentStateInterface]);
-                const params = createComponentSuperTypeParameters([
-                    componentPropsInterface,
-                    componentStateInterface
-                ]);
-
-                propsTypeAnnotation = params.annotations[0];
-                componentClass.superTypeParameters = params.superTypeParameters;
-                propsParamIdentifier.typeAnnotation = types.typeAnnotation(propsTypeAnnotation);
-            }
-
-            path.replaceWith(componentClass);
+        if (parameters[0]) {
+            parametersStart = parameters[0].getStart();
+            parametersEnd = parameters[parameters.length - 1].getEnd();
         }
-    };
 
-    traverse(ast, {
-        Program (path: NodePath) {
-            programPath = path;
-        },
-
-        Directive (path: DirectivePath) {
-            const value: types.DirectiveLiteral = path.node.value;
-
-            if (value && value.value.indexOf('ng') === 0) {
-                path.remove();
+        return `constructor (
+            props${ typescript ? `:${ componentPropsInterface }` : '' },
+            context${ typescript ? '?:any' : ''}${ parametersStart == null ?
+                '' :
+                `, /* ${ sourceCode.slice(parametersStart, parametersEnd) } */`
             }
-        },
+        ) {super(props, context);\n`;
+    }
 
-        FunctionDeclaration: onFunction,
-        FunctionExpression: onFunction,
+    function isControllerDeclaration (node: ts.Node) {
+        const {name} = node as FunctionNode|ClassNode;
 
-        ClassDeclaration (path: ClassDeclarationPath) {
-            const {node} = path;
+        return Boolean(name && name.text === controllerName);
+    }
 
-            if (node.id && node.id.name === controllerName) {
-                if (typescript) {
-                    addComponentGlobalTypeAnnotations(programPath, [componentPropsInterface, componentStateInterface]);
+    function traverse (node: ts.Node, replacements: Replacement[]) {
+        switch (node.kind) {
+            case ts.SyntaxKind.ReturnStatement: {
+                const {parent} = node;
+
+                if (parent && isControllerDeclaration(parent)) {
+                    replacements.push(removeNode(node));
                 }
 
-                let propsTypeAnnotation: types.GenericTypeAnnotation;
+                break;
+            }
+            case ts.SyntaxKind.ImportDeclaration: {
+                const {parent} = node;
 
-                if (typescript && !node.superTypeParameters) {
-                    const params = createComponentSuperTypeParameters([
-                        componentPropsInterface,
-                        componentStateInterface
-                    ]);
-
-                    propsTypeAnnotation = params.annotations[0];
-                    node.superTypeParameters = params.superTypeParameters;
+                if (parent && parent.kind === ts.SyntaxKind.SourceFile) {
+                    lastRootImportEnd = node.getEnd();
                 }
 
-                if (!node.superClass) {
-                    node.superClass = createComponentSuperClass(componentType);
+                break;
+            }
+            case ts.SyntaxKind.FunctionExpression:
+            case ts.SyntaxKind.FunctionDeclaration: {
+                const fnNode: FunctionNode = node as FunctionNode;
 
-                    const methodsPaths: ClassMethodNodePath[] = path.get('body').get('body') || [];
-                    const constructorMethodPath: ClassMethodNodePath = methodsPaths.find(({node}) => {
-                        return node.kind === 'constructor';
-                    });
+                if (isControllerDeclaration(node)) {
+                    const {body, parameters} = fnNode;
+                    const declarationStart: number = fnNode.getStart();
+                    const bodyStart: number = body.getStart();
+                    const bodyEnd: number = body.getEnd();
 
-                    if (constructorMethodPath) {
-                        const constructorMethodNode: types.ClassMethod = constructorMethodPath.node;
-                        const [propsParamIdentifier] = createComponentConstructorParams({
-                            typescript,
-                            node: constructorMethodNode,
-                            constructorParams: constructorMethodNode.params
-                        });
+                    replacements.push(
+                        Replacement.delete(declarationStart, bodyStart),
+                        Replacement.insert(declarationStart, createClassDeclaration(
+                            fnNode,
+                            componentPropsInterface,
+                            componentStateInterface,
+                            componentOptions,
+                            transformOptions
+                        )),
+                        Replacement.insert(bodyStart + 1, createConstructorDeclaration(parameters)),
+                        Replacement.insert(bodyEnd - 1, `}\n\nrender () {return ${ jsxResult };}`)
+                    );
+                }
 
-                        if (propsTypeAnnotation) {
-                            propsParamIdentifier.typeAnnotation = types.typeAnnotation(propsTypeAnnotation);
+                break;
+            }
+            case ts.SyntaxKind.ClassDeclaration:
+            case ts.SyntaxKind.ClassExpression: {
+                const classNode: ClassNode = node as ClassNode;
+
+                if (isControllerDeclaration(node)) {
+                    const {name, members} = classNode;
+                    const declarationStart: number = classNode.getStart();
+                    const nameEnd: number = name.getEnd();
+
+                    replacements.push(
+                        Replacement.delete(declarationStart, nameEnd),
+                        Replacement.insert(declarationStart, createClassDeclaration(
+                            classNode,
+                            componentPropsInterface,
+                            componentStateInterface,
+                            componentOptions,
+                            transformOptions
+                        )),
+                        Replacement.insert(classNode.getEnd() - 1, `\nrender () {return ${ jsxResult };}`)
+                    );
+
+                    members.some((node: ts.ClassElement) => {
+                        if (node.kind === ts.SyntaxKind.Constructor) {
+                            const {parameters, body} = node as ts.ConstructorDeclaration;
+                            const nodeStart: number = node.getStart();
+                            const nodeEnd: number = node.getEnd();
+                            const bodyStart: number = body.getStart();
+                            const bodyEnd: number = body.getEnd();
+
+                            replacements.push(
+                                Replacement.delete(nodeStart, nodeEnd),
+                                Replacement.insert(nodeStart, `
+                                    ${ createConstructorDeclaration(parameters) }
+                                    ${ sourceCode.slice(bodyStart + 1, bodyEnd + 1) }
+                                `)
+                            );
+
+                            return true;
                         }
 
-                        constructorMethodPath.get('body').unshiftContainer(
-                            'body',
-                            createComponentConstructorSuperCall()
-                        );
-                    }
+                        return false;
+                    });
                 }
 
-                path.get('body').pushContainer('body', types.identifier(`//${ jsxResultKeyword }`));
+                break;
             }
+            default:
+            //
         }
-    });
 
-    return generate(ast).code
-        .replace(new RegExp(controllerName, 'g'), componentName)
-        .replace(jsxResultKeywordPattern, `
-            render () {
-                return ${ jsxResult };
-            }
-        `);
+        ts.forEachChild(node, (node: ts.Node) => traverse(node, replacements));
+    }
+
+    traverse(sourceFile, replacements);
+
+    if (typescript) {
+        replacements.push(Replacement.insert(
+            lastRootImportEnd == null ? 0 : lastRootImportEnd,
+            `
+                \n${ createInterfaceDeclaration(componentPropsInterface) }
+                \n${ createInterfaceDeclaration(componentStateInterface) }\n
+            `
+        ));
+    }
+
+    return applyReplacements(sourceCode, replacements)
+        .replace(/["']ngInject["'];?/g, '')
+        .replace(new RegExp(controllerName, 'g'), componentName);
 }

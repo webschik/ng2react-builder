@@ -9,24 +9,35 @@ export interface RealWorldComponentState {
     [key: string]: any;
 }
 
-class RealWorldComponent extends React.PureComponent<RealWorldComponentProps, RealWorldComponentState> {
-    constructor(props: RealWorldComponentProps, context?: any /*, article, User, Comments, $sce, $rootScope, */) {
+export interface Article {
+    body: string;
+    [key: string]: any;
+}
+
+class RealWorldComponent extends React.Component<RealWorldComponentProps, RealWorldComponentState> {
+    protected article: Article;
+
+    constructor(
+        props: RealWorldComponentProps,
+        context?: any /* article: Article, User, Comments, $sce, $rootScope */
+    ) {
         super(props, context);
 
         this.article = article;
         this._Comments = Comments;
+
         this.currentUser = User.current;
+
         $rootScope.setPageTitle(this.article.title);
-        this.article.body = $sce.trustAsHtml(
-            marked(this.article.body, {
-                sanitize: true
-            })
-        );
+
+        this.article.body = $sce.trustAsHtml(marked(this.article.body, {sanitize: true}));
+
         Comments.getAll(this.article.slug).then((comments) => (this.comments = comments));
+
         this.resetCommentForm();
     }
 
-    resetCommentForm() {
+    private resetCommentForm() {
         this.commentForm = {
             isSubmitting: false,
             body: '',
@@ -34,7 +45,7 @@ class RealWorldComponent extends React.PureComponent<RealWorldComponentProps, Re
         };
     }
 
-    addComment() {
+    private addComment() {
         this.commentForm.isSubmitting = true;
 
         this._Comments.add(this.article.slug, this.commentForm.body).then(
@@ -49,7 +60,7 @@ class RealWorldComponent extends React.PureComponent<RealWorldComponentProps, Re
         );
     }
 
-    deleteComment(commentId, index) {
+    private deleteComment(commentId, index) {
         this._Comments.destroy(commentId, this.article.slug).then((success) => {
             this.comments.splice(index, 1);
         });

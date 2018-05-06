@@ -13,11 +13,9 @@ class ContactDetail extends React.Component<ContactDetailProps, ContactDetailSta
         super(props, context);
 
         var ctrl = this;
-
         ctrl.$onInit = function() {
             ctrl.isNewContact = !ctrl.contact.$id;
         };
-
         ctrl.saveContact = function() {
             ctrl.onSave({
                 $event: {
@@ -25,7 +23,6 @@ class ContactDetail extends React.Component<ContactDetailProps, ContactDetailSta
                 }
             });
         };
-
         ctrl.updateContact = function() {
             ctrl.onUpdate({
                 $event: {
@@ -33,7 +30,6 @@ class ContactDetail extends React.Component<ContactDetailProps, ContactDetailSta
                 }
             });
         };
-
         ctrl.deleteContact = function() {
             ctrl.onDelete({
                 $event: {
@@ -41,7 +37,6 @@ class ContactDetail extends React.Component<ContactDetailProps, ContactDetailSta
                 }
             });
         };
-
         ctrl.tagChange = function(event) {
             ctrl.contact.tag = event.tag;
             ctrl.updateContact();

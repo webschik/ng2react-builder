@@ -2,7 +2,7 @@
   "extends": "tslint-config-webschik",
   "linterOptions": {
     "exclude": [
-      "__tests__/**/*.tsx"
+      "__tests__/**/*.{ts,tsx}"
     ]
   }
 }
