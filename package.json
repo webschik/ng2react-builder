@@ -25,12 +25,9 @@
     "angular": "^1.6.9",
     "parse5": "^4.0.0",
     "prettier": "^1.11.1",
-    "@babel/generator": "^7.0.0-beta.44",
-    "@babel/traverse": "^7.0.0-beta.44",
-    "babylon": "^6.18.0"
+    "typescript": "^2.8.1"
   },
   "devDependencies": {
-    "@types/babylon": "^6.16.2",
     "@types/jest": "^22.2.2",
     "@types/node": "^9.6.1",
     "@types/prettier": "^1.10.0",
@@ -40,8 +37,7 @@
     "jest": "^22.4.3",
     "ts-node": "^5.0.1",
     "tslint": "^5.9.1",
-    "tslint-config-webschik": "^1.0.0",
-    "typescript": "^2.8.1"
+    "tslint-config-webschik": "^1.0.0"
   },
   "repository": {
     "type": "git",

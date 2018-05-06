@@ -6,7 +6,7 @@ describe('transform()', () => {
         it('should generate TSX component', () => {
             return readFiles(
                 './component7/template.html',
-                './component7/controller.js',
+                './component7/controller.ts',
                 './component7/index.tsx'
             ).then(([template, controllerCode, componentCode]: string[]) => {
                 const generatedComponents: GeneratedComponent[] = transform({
