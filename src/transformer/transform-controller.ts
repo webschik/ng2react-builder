@@ -2,6 +2,7 @@ import * as ts from 'typescript';
 import {ComponentOptions, TransformOptions} from '../index';
 
 type FunctionNode = ts.FunctionDeclaration|ts.FunctionExpression;
+type ClassNode = ts.ClassDeclaration|ts.ClassExpression;
 
 class Replacement {
     constructor (readonly start: number, readonly end: number, readonly text = '', readonly priority = 0) {
@@ -34,26 +35,20 @@ function applyReplacements (source: string, replacements: Replacement[]) {
 }
 
 function createClassDeclaration (
-    sourceCode: string,
-    node: ts.ClassDeclaration|FunctionNode,
+    node: ClassNode|FunctionNode,
     componentPropsInterface: string,
     componentStateInterface: string,
     {componentType, componentName}: ComponentOptions,
     {react: {typescript}}: TransformOptions
 ): string {
-    const {heritageClauses} = node as ts.ClassDeclaration;
-    let heritageClause: string;
+    const {heritageClauses} = node as ClassNode;
+    let heritageClause: string = '';
 
-    if (heritageClauses && heritageClauses[0]) {
-        heritageClause = sourceCode.slice(
-            heritageClauses[0].getStart(),
-            heritageClauses[heritageClauses.length - 1].getEnd()
-        );
-    } else {
+    if (!heritageClauses || !heritageClauses[0]) {
         heritageClause = ` extends React.${ componentType === 'pure' ? 'PureComponent' : 'Component' }${ typescript ?
             `<${ componentPropsInterface }, ${ componentStateInterface }>` :
             ''
-        }`;
+            }`;
     }
 
     return `class ${ componentName } ${ heritageClause }`;
@@ -87,35 +82,42 @@ export default function transformController (
     );
     let lastRootImportEnd: number;
 
-    function isControllerFunction (node: ts.Node) {
-        const {name} = node as FunctionNode;
+    function createConstructorDeclaration (parameters: ReadonlyArray<ts.ParameterDeclaration>) {
+        let parametersStart: number;
+        let parametersEnd: number;
+
+        if (parameters[0]) {
+            parametersStart = parameters[0].getStart();
+            parametersEnd = parameters[parameters.length - 1].getEnd();
+        }
+
+        return `constructor (
+            props${ typescript ? `:${ componentPropsInterface }` : '' },
+            context${ typescript ? '?:any' : ''}${ parametersStart == null ?
+                '' :
+                `, /* ${ sourceCode.slice(parametersStart, parametersEnd) } */`
+            }
+        ) {super(props, context);\n`;
+    }
+
+    function isControllerDeclaration (node: ts.Node) {
+        const {name} = node as FunctionNode|ClassNode;
 
         return Boolean(name && name.text === controllerName);
     }
 
     function traverse (node: ts.Node, replacements: Replacement[]) {
         switch (node.kind) {
-            case ts.SyntaxKind.ExpressionStatement:
-                const {expression} = node as ts.ExpressionStatement;
-                const {text} = expression as ts.StringLiteral;
-
-                if (expression.kind === ts.SyntaxKind.StringLiteral && text && text.indexOf('ng') === 0) {
-                    replacements.push(removeNode(node));
-                }
-
-                break;
-            case ts.SyntaxKind.ReturnStatement:
-            {
+            case ts.SyntaxKind.ReturnStatement: {
                 const {parent} = node;
 
-                if (parent && isControllerFunction(parent)) {
+                if (parent && isControllerDeclaration(parent)) {
                     replacements.push(removeNode(node));
                 }
 
                 break;
             }
-            case ts.SyntaxKind.ImportDeclaration:
-            {
+            case ts.SyntaxKind.ImportDeclaration: {
                 const {parent} = node;
 
                 if (parent && parent.kind === ts.SyntaxKind.SourceFile) {
@@ -128,49 +130,70 @@ export default function transformController (
             case ts.SyntaxKind.FunctionDeclaration: {
                 const fnNode: FunctionNode = node as FunctionNode;
 
-                if (isControllerFunction(node)) {
+                if (isControllerDeclaration(node)) {
                     const {body, parameters} = fnNode;
                     const declarationStart: number = fnNode.getStart();
                     const bodyStart: number = body.getStart();
                     const bodyEnd: number = body.getEnd();
-                    let parametersStart: number;
-                    let parametersEnd: number;
-
-                    if (parameters[0]) {
-                        parametersStart = parameters[0].getStart();
-                        parametersEnd = parameters[parameters.length - 1].getEnd();
-                    }
 
                     replacements.push(
                         Replacement.delete(declarationStart, bodyStart),
                         Replacement.insert(declarationStart, createClassDeclaration(
-                            sourceCode,
                             fnNode,
                             componentPropsInterface,
                             componentStateInterface,
                             componentOptions,
                             transformOptions
                         )),
-                        Replacement.insert(
-                            bodyStart + 1,
-                            `constructor (
-                                props${ typescript ? `:${ componentPropsInterface }` : '' },
-                                context${ typescript ? '?:any' : ''}${ parametersStart == null ?
-                                '' :
-                                `, /* ${ sourceCode.slice(parametersStart, parametersEnd) } */` }
-                            ) {super(props, context);\n`
-                        ),
-                        Replacement.insert(bodyEnd - 1, `}\nrender () {return ${ jsxResult };}`)
+                        Replacement.insert(bodyStart + 1, createConstructorDeclaration(parameters)),
+                        Replacement.insert(bodyEnd - 1, `}\n\nrender () {return ${ jsxResult };}`)
                     );
                 }
 
                 break;
             }
-            case ts.SyntaxKind.ClassDeclaration: {
-                const {name} = node as ts.ClassDeclaration;
+            case ts.SyntaxKind.ClassDeclaration:
+            case ts.SyntaxKind.ClassExpression: {
+                const classNode: ClassNode = node as ClassNode;
 
-                if (name && name.text === controllerName) {
-                    //
+                if (isControllerDeclaration(node)) {
+                    const {name, members} = classNode;
+                    const declarationStart: number = classNode.getStart();
+                    const nameEnd: number = name.getEnd();
+
+                    replacements.push(
+                        Replacement.delete(declarationStart, nameEnd),
+                        Replacement.insert(declarationStart, createClassDeclaration(
+                            classNode,
+                            componentPropsInterface,
+                            componentStateInterface,
+                            componentOptions,
+                            transformOptions
+                        )),
+                        Replacement.insert(classNode.getEnd() - 1, `\nrender () {return ${ jsxResult };}`)
+                    );
+
+                    members.some((node: ts.ClassElement) => {
+                        if (node.kind === ts.SyntaxKind.Constructor) {
+                            const {parameters, body} = node as ts.ConstructorDeclaration;
+                            const nodeStart: number = node.getStart();
+                            const nodeEnd: number = node.getEnd();
+                            const bodyStart: number = body.getStart();
+                            const bodyEnd: number = body.getEnd();
+
+                            replacements.push(
+                                Replacement.delete(nodeStart, nodeEnd),
+                                Replacement.insert(nodeStart, `
+                                    ${ createConstructorDeclaration(parameters) }
+                                    ${ sourceCode.slice(bodyStart + 1, bodyEnd + 1) }
+                                `)
+                            );
+
+                            return true;
+                        }
+
+                        return false;
+                    });
                 }
 
                 break;
@@ -194,5 +217,7 @@ export default function transformController (
         ));
     }
 
-    return applyReplacements(sourceCode, replacements).replace(new RegExp(controllerName, 'g'), componentName);
+    return applyReplacements(sourceCode, replacements)
+        .replace(/["']ngInject["'];?/g, '')
+        .replace(new RegExp(controllerName, 'g'), componentName);
 }

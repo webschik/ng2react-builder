@@ -42,6 +42,7 @@ class ContactDetail extends React.Component<ContactDetailProps, ContactDetailSta
             ctrl.updateContact();
         };
     }
+
     render() {
         return (
             <div className="contact">

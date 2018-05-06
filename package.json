@@ -66,7 +66,8 @@
     "setupTestFrameworkScriptFile": "<rootDir>/jest/config.js",
     "testPathIgnorePatterns": [
       "/node_modules/",
-      "/__tests__/component7/controller.js"
+      "controller\\.(ts|js)$",
+      "index\\.tsx$"
     ],
     "moduleFileExtensions": [
       "ts",
