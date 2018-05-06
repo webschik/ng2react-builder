@@ -34,21 +34,33 @@ function applyReplacements (source: string, replacements: Replacement[]) {
 }
 
 function createClassDeclaration (
+    sourceCode: string,
     node: ts.ClassDeclaration|FunctionNode,
     componentPropsInterface: string,
     componentStateInterface: string,
-    componentOptions: ComponentOptions,
+    {componentType, componentName}: ComponentOptions,
     {react: {typescript}}: TransformOptions
 ): string {
     const {heritageClauses} = node as ts.ClassDeclaration;
-    const heritageClause: string = heritageClauses ?
-        '' :
-        ` extends React.${ componentOptions.componentType === 'pure' }${ typescript ?
+    let heritageClause: string;
+
+    if (heritageClauses && heritageClauses[0]) {
+        heritageClause = sourceCode.slice(
+            heritageClauses[0].getStart(),
+            heritageClauses[heritageClauses.length - 1].getEnd()
+        );
+    } else {
+        heritageClause = ` extends React.${ componentType === 'pure' ? 'PureComponent' : 'Component' }${ typescript ?
             `<${ componentPropsInterface }, ${ componentStateInterface }>` :
             ''
-            }`;
+        }`;
+    }
 
-    return `class ${ componentOptions.componentName }${ heritageClause }`;
+    return `class ${ componentName } ${ heritageClause }`;
+}
+
+function createInterfaceDeclaration (name: string) {
+    return `export interface ${ name } {[key: string]: any}`;
 }
 
 function removeNode (node: ts.Node): Replacement {
@@ -61,7 +73,7 @@ export default function transformController (
     transformOptions: TransformOptions
 ): string {
     const {typescript} = transformOptions.react;
-    const {controller, componentName, componentType} = componentOptions;
+    const {controller, componentName} = componentOptions;
     const componentPropsInterface: string = `${ componentName }Props`;
     const componentStateInterface: string = `${ componentName }State`;
     const controllerName: string = controller.name;
@@ -73,6 +85,7 @@ export default function transformController (
         ts.ScriptTarget.Latest,
         true
     );
+    let lastRootImportEnd: number;
 
     function isControllerFunction (node: ts.Node) {
         const {name} = node as FunctionNode;
@@ -92,6 +105,7 @@ export default function transformController (
 
                 break;
             case ts.SyntaxKind.ReturnStatement:
+            {
                 const {parent} = node;
 
                 if (parent && isControllerFunction(parent)) {
@@ -99,6 +113,17 @@ export default function transformController (
                 }
 
                 break;
+            }
+            case ts.SyntaxKind.ImportDeclaration:
+            {
+                const {parent} = node;
+
+                if (parent && parent.kind === ts.SyntaxKind.SourceFile) {
+                    lastRootImportEnd = node.getEnd();
+                }
+
+                break;
+            }
             case ts.SyntaxKind.FunctionExpression:
             case ts.SyntaxKind.FunctionDeclaration: {
                 const fnNode: FunctionNode = node as FunctionNode;
@@ -119,6 +144,7 @@ export default function transformController (
                     replacements.push(
                         Replacement.delete(declarationStart, bodyStart),
                         Replacement.insert(declarationStart, createClassDeclaration(
+                            sourceCode,
                             fnNode,
                             componentPropsInterface,
                             componentStateInterface,
@@ -129,12 +155,12 @@ export default function transformController (
                             bodyStart + 1,
                             `constructor (
                                 props${ typescript ? `:${ componentPropsInterface }` : '' },
-                                context${ typescript ? ':?any' : ''}${ parametersStart == null ?
+                                context${ typescript ? '?:any' : ''}${ parametersStart == null ?
                                 '' :
                                 `, /* ${ sourceCode.slice(parametersStart, parametersEnd) } */` }
-                            ) {super(props, context);`
+                            ) {super(props, context);\n`
                         ),
-                        Replacement.insert(bodyEnd - 1, `return (${ jsxResult });}`)
+                        Replacement.insert(bodyEnd - 1, `}\nrender () {return ${ jsxResult };}`)
                     );
                 }
 
@@ -157,6 +183,16 @@ export default function transformController (
     }
 
     traverse(sourceFile, replacements);
+
+    if (typescript) {
+        replacements.push(Replacement.insert(
+            lastRootImportEnd == null ? 0 : lastRootImportEnd,
+            `
+                \n${ createInterfaceDeclaration(componentPropsInterface) }
+                \n${ createInterfaceDeclaration(componentStateInterface) }\n
+            `
+        ));
+    }
 
     return applyReplacements(sourceCode, replacements).replace(new RegExp(controllerName, 'g'), componentName);
 }
