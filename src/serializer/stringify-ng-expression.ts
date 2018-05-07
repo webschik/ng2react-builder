@@ -28,6 +28,20 @@ function stringifyLogicalExpression ({left, operator, right}: AngularASTExpressi
     return `${ left ? stringifyExpression(left) : '' } ${ operator } ${ right ? stringifyExpression(right) : '' }`;
 }
 
+function stringifyUnaryExpression ({operator, argument, prefix}: AngularASTExpression) {
+    if (prefix) {
+        return `${ operator }${ stringifyExpression(argument) }`;
+    }
+
+    return `${ stringifyExpression(argument) }${ operator }`;
+}
+
+function stringifyObjectExpression ({properties}: AngularASTExpression) {
+    return `{${ properties.map((property) => {
+        return `${ stringifyExpression(property.key) }:${ stringifyExpression(property.value) }`;
+    }).join(',') }}`;
+}
+
 function stringifyIdentifier (expression: AngularASTExpression) {
     return expression.name || '';
 }
@@ -68,6 +82,12 @@ function stringifyExpression (expression: AngularASTExpression): string {
             break;
         case 'Literal':
             output += stringifyLiteral(expression);
+            break;
+        case 'UnaryExpression':
+            output += stringifyUnaryExpression(expression);
+            break;
+        case 'ObjectExpression':
+            output += stringifyObjectExpression(expression);
             break;
         default:
         //

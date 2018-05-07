@@ -1,1 +1,3 @@
-<span type="{{type}}" ng-attr-id="{{iconId}}" class="{{::className}}" aria-disabled></span>
+<span type="{{type}}" ng-attr-id="{{iconId}}" class="{{::className}}" aria-disabled>
+    {{order.value === -1 ? 'text' : (order.value | number:{formatting: 'price'}) }}
+</span>

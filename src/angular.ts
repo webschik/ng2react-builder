@@ -22,6 +22,7 @@ export interface AngularASTExpression {
     type: string;
     value?: string;
     callee?: AngularASTExpression;
+    argument?: AngularASTExpression;
     arguments?: AngularASTExpression[];
     property?: AngularASTExpression;
     object?: AngularASTExpression;
@@ -31,7 +32,15 @@ export interface AngularASTExpression {
     alternate?: AngularASTExpression;
     consequent?: AngularASTExpression;
     computed?: boolean;
+    prefix?: boolean;
     operator?: string;
+    properties?: AngularASTPropertyExpression[];
+}
+
+export interface AngularASTPropertyExpression {
+    computed: boolean;
+    key: AngularASTExpression;
+    value: AngularASTExpression;
 }
 
 export interface AngularParser {
