@@ -44,6 +44,7 @@ transform({
         }
     },
     react: {
+        // I wanna my component in Typescript. Some basic typings will be generated
         typescript: true
     },
     components: [
@@ -51,6 +52,7 @@ transform({
             componentType: 'pure',
             componentName: 'TodoComponent',
             controller: {
+              // Parser needs controller.name to find the main function/class
               name: 'TodoCtrl',
               code: `
                 export default function TodoCtrl($scope, $routeParams, $filter, store) {
