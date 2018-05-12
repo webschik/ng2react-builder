@@ -150,7 +150,7 @@ export interface TodoComponentState {
 export default class TodoComponent extends React.PureComponent<TodoComponentProps, TodoComponentState> {
     constructor(
         props: TodoComponentProps,
-        context?: any \/* $scope, $routeParams, $filter, store *\/
+        context?: any &#47;* $scope, $routeParams, $filter, store *&#47;
     ) {
         super(props, context);
         'use strict';
