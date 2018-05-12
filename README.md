@@ -24,9 +24,23 @@ import {transform} from 'ng2react-builder';
 
 transform({
     directivesToTags: {
+        /*
+          Transform <my-icon="card" class="..."/>, <i my-icon="card" class="..."/>, <i data-my-icon="card" class="..."/>
+          to <MyReactIcon type="card" class="..."/>
+         */
         'my-icon': {
             tagName: 'MyReactIcon',
             valueProp: 'type'
+        }
+    },
+    directivesToTextNodes: {
+        /*
+          Transform <div i18n="key">...</div>, <div data-i18n="key">...</div>
+          to <div>{localize(store, 'key')}...</div>
+        */
+        i18n: {
+            callee: 'localize',
+            calleeArguments: ['store']
         }
     },
     react: {
@@ -35,7 +49,20 @@ transform({
     components: [
         {
             componentType: 'pure',
-            componentName: 'PhoneDetail',
+            componentName: 'TodoComponent',
+            controller: {
+              name: 'TodoCtrl',
+              code: `
+                export default function TodoCtrl($scope, $routeParams, $filter, store) {
+                    'use strict';
+            
+                    var todos = $scope.todos = store.todos;
+            
+                    $scope.newTodo = '';
+                    $scope.editedTodo = null;
+                }
+              `
+            },
             template: {
                 code: `
                     <div ng-app="todomvc">
@@ -109,15 +136,28 @@ transform({
 code: `
 import * as React from 'react';
 
-export interface PhoneDetailProps {
+export interface TodoComponentProps {
   [key: string]: any;
 }
 
-export interface PhoneDetailState {
+export interface TodoComponentState {
   [key: string]: any;
 }
 
-export default class PhoneDetail extends React.PureComponent<PhoneDetailProps, PhoneDetailState> {
+export default class TodoComponent extends React.PureComponent<TodoComponentProps, TodoComponentState> {
+    constructor(
+        props: TodoComponentProps,
+        context?: any /* $scope, $routeParams, $filter, store */
+    ) {
+        super(props, context);
+        'use strict';
+
+        var todos = $scope.todos = store.todos;
+
+        $scope.newTodo = '';
+        $scope.editedTodo = null;
+    }
+    
     render() {
         return (
             <div ng-app="todomvc">
