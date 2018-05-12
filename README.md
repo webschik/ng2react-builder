@@ -132,6 +132,9 @@ transform({
     ]
 });
 /*
+
+Result:
+
 [{
 code: `
 import * as React from 'react';
